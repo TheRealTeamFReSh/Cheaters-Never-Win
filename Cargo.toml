@@ -1,0 +1,15 @@
+[package]
+name = "bevy_jam_1"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { version = "0.6.0", features = ["dynamic"] }
+
+# Enabling bevylint
+[workspace.metadata.dylint]
+libraries = [
+    { git = "https://github.com/MinerSebas/bevy_lint", branch = "main" },
+]

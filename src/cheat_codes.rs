@@ -2,7 +2,7 @@ use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::SliceRandom;
 use std::collections::HashMap;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum CheatCodeKind {
     Jump,
     DoubleJump,
@@ -11,7 +11,7 @@ pub enum CheatCodeKind {
 }
 
 // here the value is the weight for the weighted distribution
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum CheatCodeRarity {
     Mandatory = 0, // weight of zero because it is not present in the distribution
     Common = 10,
@@ -19,12 +19,14 @@ pub enum CheatCodeRarity {
     Legendary = 2,
 }
 
+#[derive(Debug)]
 pub enum CheatCodeActivationResult {
     NotFound,
     Activated(CheatCodeKind),
     AlreadyActivated(CheatCodeKind),
 }
 
+#[derive(Debug)]
 pub struct CheatCode {
     kind: CheatCodeKind,
     rarity: CheatCodeRarity,

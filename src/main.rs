@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 
+mod cheat_codes;
 mod console;
 mod states;
 
@@ -13,6 +14,7 @@ fn main() {
             title: "Bevy Jam #1".to_string(),
             ..Default::default()
         })
+        .insert_resource(cheat_codes::CheatCodeResource::new())
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(console::ConsolePlugin)

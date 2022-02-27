@@ -9,12 +9,13 @@ pub enum CheatCodeKind {
     MoveLeft,
 }
 
+// here the value is the weight for the weighted distribution
 #[derive(PartialEq, Eq, Clone, Copy)]
 pub enum CheatCodeRarity {
-    Mandatory = 0,
-    Common,
-    Rare,
-    Legendary = 3,
+    Mandatory = 0, // weight of zero because it is not present in the distribution
+    Common = 10,
+    Rare = 5,
+    Legendary = 2,
 }
 
 pub enum CheatCodeActivationResult {

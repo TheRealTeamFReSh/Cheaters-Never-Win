@@ -35,4 +35,9 @@ fn setup(mut commands: Commands) {
     info!("Setting up cameras");
     commands.spawn_bundle(UiCameraBundle::default());
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+
+    println!(
+        "Random code : {}",
+        cheat_codes::generate_random_code(cheat_codes::CheatCodeRarity::Legendary)
+    );
 }

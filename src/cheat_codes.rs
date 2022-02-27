@@ -1,3 +1,4 @@
+use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::SliceRandom;
 use std::collections::HashMap;
 
@@ -124,7 +125,7 @@ impl CheatCodeResource {
             CheatCode::new(
                 CheatCodeKind::Jump,
                 CheatCodeRarity::Mandatory,
-                generate_random_code(CheatCodeRarity::Mandatory),
+                &generate_random_code(CheatCodeRarity::Mandatory),
                 vec![],
             ),
         );
@@ -133,7 +134,7 @@ impl CheatCodeResource {
             CheatCode::new(
                 CheatCodeKind::DoubleJump,
                 CheatCodeRarity::Common,
-                generate_random_code(CheatCodeRarity::Common),
+                &generate_random_code(CheatCodeRarity::Common),
                 vec![CheatCodeKind::Jump],
             ),
         );
@@ -142,7 +143,7 @@ impl CheatCodeResource {
             CheatCode::new(
                 CheatCodeKind::Attack,
                 CheatCodeRarity::Rare,
-                generate_random_code(CheatCodeRarity::Rare),
+                &generate_random_code(CheatCodeRarity::Rare),
                 vec![],
             ),
         );
@@ -151,7 +152,7 @@ impl CheatCodeResource {
             CheatCode::new(
                 CheatCodeKind::MoveLeft,
                 CheatCodeRarity::Legendary,
-                generate_random_code(CheatCodeRarity::Legendary),
+                &generate_random_code(CheatCodeRarity::Legendary),
                 vec![],
             ),
         );
@@ -163,6 +164,14 @@ impl CheatCodeResource {
     }
 }
 
-fn generate_random_code(_rarity: CheatCodeRarity) -> &'static str {
-    "code"
+pub fn generate_random_code(rarity: CheatCodeRarity) -> String {
+    // length is based on the rarity
+    let length = match rarity {
+        CheatCodeRarity::Mandatory => 4,
+        CheatCodeRarity::Common => 4,
+        CheatCodeRarity::Rare => 6,
+        CheatCodeRarity::Legendary => 8,
+    };
+
+    Alphanumeric.sample_string(&mut rand::thread_rng(), length)
 }

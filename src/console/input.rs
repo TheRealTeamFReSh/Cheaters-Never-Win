@@ -1,8 +1,11 @@
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 
+use super::event::SendCommandEvent;
+
 pub fn handle_input_keys(
     mut data: ResMut<super::ConsoleData>,
     mut evr_keys: EventReader<KeyboardInput>,
+    mut send_command: EventWriter<SendCommandEvent>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
     // don't do anything if control key is pressed
@@ -74,9 +77,7 @@ pub fn handle_input_keys(
 
                     KeyCode::Return => {
                         // sending the command
-                        // ev_writer.send(EnteredConsoleCommandEvent(data.input.clone()));
-                        let command = data.input.clone();
-                        data.lines.push(command);
+                        send_command.send(SendCommandEvent(data.input.clone()));
                         // clearing the input
                         data.input.clear();
                     }

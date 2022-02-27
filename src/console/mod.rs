@@ -1,6 +1,10 @@
 use crate::states::GameStates;
 use bevy::prelude::*;
 
+use self::event::{PrintToConsoleEvent, SendCommandEvent};
+
+mod commands;
+mod event;
 mod input;
 mod ui;
 mod utils;
@@ -16,16 +20,28 @@ impl Plugin for ConsolePlugin {
             input: String::from(""),
             lines: utils::welcome_lines(),
         })
+        .add_event::<PrintToConsoleEvent>()
+        .add_event::<SendCommandEvent>()
+        // on enter
         .add_system_set(SystemSet::on_enter(GameStates::Console).with_system(ui::build_ui))
+        // on update
         .add_system_set(
-            SystemSet::on_update(GameStates::Console).with_system(close_console_handler),
+            SystemSet::on_update(GameStates::Console)
+                .with_system(close_console_handler)
+                .with_system(ui::hide_foreground),
         )
-        .add_system_set(SystemSet::on_update(GameStates::Console).with_system(ui::hide_foreground))
         .add_system_set(
-            SystemSet::on_update(GameStates::Console).with_system(input::handle_input_keys),
+            SystemSet::on_update(GameStates::Console)
+                .with_system(update_input_area)
+                .with_system(update_lines_area),
         )
-        .add_system_set(SystemSet::on_update(GameStates::Console).with_system(update_input_area))
-        .add_system_set(SystemSet::on_update(GameStates::Console).with_system(update_lines_area))
+        .add_system_set(
+            SystemSet::on_update(GameStates::Console)
+                .with_system(input::handle_input_keys)
+                .with_system(commands::command_handler)
+                .with_system(event::add_message_events_to_console),
+        )
+        // on exit
         .add_system_set(
             SystemSet::on_exit(GameStates::Console).with_system(destroy_console_state_entities),
         );

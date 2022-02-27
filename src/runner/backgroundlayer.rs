@@ -8,8 +8,8 @@ pub struct BackgroundLayerPlugin;
 
 impl Plugin for BackgroundLayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_background.system())
-            .add_system(move_background.system());
+        app.add_startup_system(spawn_background)
+            .add_system(move_background);
     }
 }
 

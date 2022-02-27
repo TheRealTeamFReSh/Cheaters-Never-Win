@@ -1,5 +1,5 @@
+use crate::states::GameStates;
 use bevy::{prelude::*, render::camera::Camera};
-
 use std::f32::consts::PI;
 
 #[derive(Debug, Component)]
@@ -14,10 +14,10 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_character.system())
-            .add_system(move_character.system())
-            .add_system(follow_player_camera.system())
-            .add_system(animate_sprite.system());
+        app.add_startup_system(spawn_character)
+            .add_system(move_character)
+            .add_system(follow_player_camera)
+            .add_system(animate_sprite);
     }
 }
 
@@ -65,17 +65,23 @@ fn animate_sprite(
 }
 
 fn move_character(
+    app_state: Res<State<GameStates>>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Player, &mut Transform, &mut Handle<TextureAtlas>)>,
+    mut query: Query<(&Player, &mut Transform)>,
 ) {
-    for (player, mut transform, mut _atlas) in query.iter_mut() {
-        if keyboard_input.pressed(KeyCode::A) {
-            transform.translation.x += -1.0 * player.speed;
-            transform.rotation = Quat::from_rotation_y(PI).into();
-        } else if keyboard_input.pressed(KeyCode::D) {
-            transform.translation.x += 1.0 * player.speed;
-            transform.rotation = Quat::from_rotation_y(0.0).into();
+    match app_state.current() {
+        GameStates::Main => {
+            for (player, mut transform) in query.iter_mut() {
+                if keyboard_input.pressed(KeyCode::A) {
+                    transform.translation.x += -1.0 * player.speed;
+                    transform.rotation = Quat::from_rotation_y(PI).into();
+                } else if keyboard_input.pressed(KeyCode::D) {
+                    transform.translation.x += 1.0 * player.speed;
+                    transform.rotation = Quat::from_rotation_y(0.0).into();
+                }
+            }
         }
+        GameStates::Console => {}
     }
 }
 

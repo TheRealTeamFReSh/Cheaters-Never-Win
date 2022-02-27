@@ -32,7 +32,6 @@ fn spawn_character(
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player { speed: 5.0 };
 
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,

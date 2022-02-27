@@ -29,7 +29,7 @@ pub fn hide_foreground(
 
 // building the UI of the console
 pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>, window: Res<Windows>) {
-    info!("[ConsolePlugin] Enabling");
+    info!("[ConsolePlugin] Building console UI");
 
     let current_window = window.get_primary().unwrap();
 
@@ -144,7 +144,8 @@ pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>, window: 
             parent
                 .spawn_bundle(foreground_component)
                 .insert(ConsoleForeground);
-        });
+        })
+        .insert(super::ConsoleStateEntity);
 
-    info!("[ConsolePlugin] Enabled");
+    info!("[ConsolePlugin] UI constructed");
 }

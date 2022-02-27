@@ -1,27 +1,57 @@
+use crate::states::GameStates;
 use bevy::prelude::*;
 
 mod input;
 mod ui;
+mod utils;
+
+#[derive(Component)]
+pub struct ConsoleStateEntity;
 
 pub struct ConsolePlugin;
 
 impl Plugin for ConsolePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ConsoleData {
-            input: String::from("my command"),
-            lines: vec![String::from("hello"), String::from("world")],
+            input: String::from(""),
+            lines: utils::welcome_lines(),
         })
-        .add_startup_system(ui::build_ui)
-        .add_system(ui::hide_foreground)
-        .add_system(input::handle_input_keys)
-        .add_system(update_input_area)
-        .add_system(update_lines_area);
+        .add_system_set(SystemSet::on_enter(GameStates::Console).with_system(ui::build_ui))
+        .add_system_set(
+            SystemSet::on_update(GameStates::Console).with_system(close_console_handler),
+        )
+        .add_system_set(SystemSet::on_update(GameStates::Console).with_system(ui::hide_foreground))
+        .add_system_set(
+            SystemSet::on_update(GameStates::Console).with_system(input::handle_input_keys),
+        )
+        .add_system_set(SystemSet::on_update(GameStates::Console).with_system(update_input_area))
+        .add_system_set(SystemSet::on_update(GameStates::Console).with_system(update_lines_area))
+        .add_system_set(
+            SystemSet::on_exit(GameStates::Console).with_system(destroy_console_state_entities),
+        );
     }
 }
 
 pub struct ConsoleData {
     input: String,
     lines: Vec<String>,
+}
+
+fn destroy_console_state_entities(
+    mut commands: Commands,
+    entities_query: Query<Entity, With<ConsoleStateEntity>>,
+) {
+    info!("[ConsolePlugin] Destroying state entities before exiting...");
+    for entity in entities_query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+    info!("[ConsolePlugin] Exiting state");
+}
+
+fn close_console_handler(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<GameStates>>) {
+    if keyboard.just_pressed(KeyCode::Escape) {
+        game_state.pop().unwrap();
+    }
 }
 
 pub fn update_lines_area(

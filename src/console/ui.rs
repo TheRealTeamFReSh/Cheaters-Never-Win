@@ -28,10 +28,19 @@ pub fn hide_foreground(
 }
 
 // building the UI of the console
-pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>, window: Res<Windows>) {
+pub fn build_ui(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    window: Res<Windows>,
+    camera: Query<&Transform>,
+) {
     info!("[ConsolePlugin] Building console UI");
 
     let current_window = window.get_primary().unwrap();
+    let mut camera_pos = 0.0;
+    for transform in camera.iter() {
+        camera_pos = transform.translation.x;
+    }
 
     // ---------- UI COMPONENTS ----------//
 
@@ -44,6 +53,10 @@ pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>, window: 
             ),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
+            position: Rect {
+                left: Val::Px(camera_pos),
+                ..Default::default()
+            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 0).into(),

@@ -50,7 +50,11 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
     );
 
     let next_code = cheat_codes_res.get_next_code();
-    println!("Get next cheat code : {:?}", next_code);
+    let next_code_code = cheat_codes_res.codes.get(&next_code).unwrap();
+    println!(
+        "Get next cheat code: {:?} with code: {}",
+        next_code, next_code_code.text
+    );
 
     println!(
         "Is code activated: {}",

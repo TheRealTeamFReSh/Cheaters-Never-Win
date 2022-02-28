@@ -69,6 +69,7 @@ impl Plugin for ConsolePlugin {
 
 pub struct ConsoleAssets {
     overlay: Handle<Image>,
+    crt_font: Handle<Font>,
 }
 
 fn load_overlay(
@@ -77,9 +78,12 @@ fn load_overlay(
     mut loading: ResMut<AssetsLoading>,
 ) {
     let overlay = asset_server.load("crt.png");
-    loading.add(&overlay);
+    let crt_font = asset_server.load("fonts/VT323-Regular.ttf");
 
-    commands.insert_resource(ConsoleAssets { overlay })
+    loading.add(&overlay);
+    loading.add(&crt_font);
+
+    commands.insert_resource(ConsoleAssets { overlay, crt_font })
 }
 
 pub struct ConsoleData {
@@ -108,14 +112,14 @@ fn close_console_handler(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<S
 
 pub fn update_lines_area(
     data: Res<ConsoleData>,
-    asset_server: Res<AssetServer>,
+    console_assets: Res<ConsoleAssets>,
     mut lines_area_query: Query<&mut Text, With<ui::LinesArea>>,
 ) {
     let sections_text = data.lines.join("\n");
     let sections = vec![TextSection {
         value: sections_text,
         style: TextStyle {
-            font: asset_server.load("fonts/VT323-Regular.ttf"),
+            font: console_assets.crt_font.clone(),
             font_size: 16.,
             color: Color::rgba_u8(76, 207, 76, 255),
         },
@@ -128,7 +132,7 @@ pub fn update_lines_area(
 pub fn update_input_area(
     mut command_input_query: Query<&mut Text, With<ui::CommandInput>>,
     mut state: ResMut<ConsoleData>,
-    asset_server: Res<AssetServer>,
+    console_assets: Res<ConsoleAssets>,
     time: Res<Time>,
 ) {
     let mut text = command_input_query.single_mut();
@@ -149,7 +153,7 @@ pub fn update_input_area(
     text.sections.push(TextSection {
         value: to_show,
         style: TextStyle {
-            font: asset_server.load("fonts/VT323-Regular.ttf"),
+            font: console_assets.crt_font.clone(),
             font_size: 16.,
             color: Color::rgba_u8(102, 255, 102, 255),
         },

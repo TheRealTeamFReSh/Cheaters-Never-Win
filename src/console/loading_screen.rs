@@ -4,10 +4,16 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct LoadingScreenEntities;
 
+#[derive(Component)]
+pub struct LoadingText;
+
 pub struct LoadingScreenPlugin;
 impl Plugin for LoadingScreenPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameStates::ConsoleLoading).with_system(build_ui));
+        app.add_system_set(
+            SystemSet::on_update(GameStates::ConsoleLoading).with_system(animate_loading_text),
+        );
         app.add_system_set(SystemSet::on_exit(GameStates::ConsoleLoading).with_system(destroy_ui));
     }
 }
@@ -20,12 +26,7 @@ fn destroy_ui(mut commands: Commands, query: Query<Entity, With<LoadingScreenEnt
     info!("[LoadingScreenPlugin] Exiting state");
 }
 
-fn build_ui(
-    mut commands: Commands,
-    window: Res<Windows>,
-    camera: Query<&Transform>,
-    asset_server: Res<AssetServer>,
-) {
+fn build_ui(mut commands: Commands, window: Res<Windows>, camera: Query<&Transform>) {
     info!("[LoadingScreenPlugin] Building loading screen");
 
     // setting the initial position of the window
@@ -62,28 +63,11 @@ fn build_ui(
             ..Default::default()
         },
         text: Text {
-            sections: vec![
-                TextSection {
-                    style: TextStyle {
-                        font: asset_server.load("fonts/VT323-Regular.ttf"),
-                        font_size: 64.,
-                        color: Color::rgba_u8(211, 211, 207, 255),
-                    },
-                    value: "[Booting up for the first time]\n".to_string(),
-                },
-                TextSection {
-                    style: TextStyle {
-                        font: asset_server.load("fonts/VT323-Regular.ttf"),
-                        font_size: 48.,
-                        color: Color::rgba_u8(211, 211, 207, 255),
-                    },
-                    value: "Can take some time ...".to_string(),
-                },
-            ],
             alignment: TextAlignment {
                 horizontal: HorizontalAlign::Center,
                 ..Default::default()
             },
+            ..Default::default()
         },
         ..Default::default()
     };
@@ -91,9 +75,42 @@ fn build_ui(
     commands
         .spawn_bundle(background)
         .with_children(|parent| {
-            parent.spawn_bundle(loading_text);
+            parent.spawn_bundle(loading_text).insert(LoadingText);
         })
         .insert(LoadingScreenEntities);
 
     info!("[LoadingScreenPlugin] UI constructed");
+}
+
+pub fn animate_loading_text(
+    mut query: Query<&mut Text, With<LoadingText>>,
+    asset_server: Res<AssetServer>,
+    time: Res<Time>,
+) {
+    let font_handle = asset_server.load("fonts/VT323-Regular.ttf");
+
+    let mut can_take_time = "Can take some time ".to_string();
+    for _ in 0..(time.seconds_since_startup() * 2.0 % 4.0) as usize {
+        can_take_time.push('.');
+    }
+
+    let mut text = query.single_mut();
+    text.sections = vec![
+        TextSection {
+            style: TextStyle {
+                font: font_handle.clone(),
+                font_size: 64.,
+                color: Color::rgba_u8(211, 211, 207, 255),
+            },
+            value: "[Booting up for the first time]\n".to_string(),
+        },
+        TextSection {
+            style: TextStyle {
+                font: font_handle.clone(),
+                font_size: 48.,
+                color: Color::rgba_u8(211, 211, 207, 255),
+            },
+            value: can_take_time,
+        },
+    ];
 }

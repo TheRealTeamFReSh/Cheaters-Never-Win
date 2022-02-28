@@ -4,6 +4,8 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 mod console;
 mod states;
 
+mod runner;
+
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
@@ -16,6 +18,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(console::ConsolePlugin)
+        .add_plugin(runner::RunnerPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(setup)
         // handling console state change

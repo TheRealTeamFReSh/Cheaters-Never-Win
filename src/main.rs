@@ -6,6 +6,7 @@ mod cheat_codes;
 mod console;
 mod states;
 
+mod pause_menu;
 mod runner;
 
 fn main() {
@@ -22,6 +23,7 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(console::ConsolePlugin)
         .add_plugin(runner::RunnerPlugin)
+        .add_plugin(pause_menu::PauseMenuPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(setup)
         // TODO: remove

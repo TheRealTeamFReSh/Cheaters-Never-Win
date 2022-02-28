@@ -9,6 +9,8 @@ edition = "2021"
 bevy = { version = "0.6.0", features = ["dynamic"] }
 bevy-inspector-egui = "0.8.2"
 rand = "0.8.5"
+bevy_ninepatch = "0.6.0"
+bevy_tweening = "0.3.2"
 
 # Enabling bevylint
 [workspace.metadata.dylint]

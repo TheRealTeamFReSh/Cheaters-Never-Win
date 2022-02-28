@@ -2,4 +2,5 @@
 pub enum GameStates {
     Main,
     Console,
+    PauseMenu,
 }

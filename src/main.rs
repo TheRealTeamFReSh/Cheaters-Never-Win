@@ -3,6 +3,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 
 mod console;
+mod enemies;
 mod physics;
 mod platforms;
 mod runner;
@@ -24,6 +25,7 @@ fn main() {
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(physics::PhysicsPlugin)
         .add_plugin(platforms::PlatformsPlugin)
+        .add_plugin(enemies::EnemiesPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(setup)
         // handling console state change

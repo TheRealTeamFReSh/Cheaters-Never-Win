@@ -65,7 +65,7 @@ fn spawn_character(
         .insert_bundle(ColliderBundle {
             shape: ColliderShape::cuboid(collider_size_hx, collider_size_hy).into(),
             material: ColliderMaterial {
-                friction: 0.0,
+                friction: 0.5,
                 restitution: 0.0,
                 ..Default::default()
             }

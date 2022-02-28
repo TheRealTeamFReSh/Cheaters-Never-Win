@@ -54,8 +54,10 @@ jobs:
             - name: Wasm bindgen
               run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/release/bevy_jam_1.wasm
 
-            - name: Copy template to out folder
-              run: cp -R ./wasm-page-template/* ./out/
+            - name: Copy files to dist folder
+              run: |
+                  cp -R ./wasm-page-template/* ./out/
+                  cp -R ./assets/ ./out/
 
             - name: Deploy
               uses: s0/git-publish-subdir-action@develop

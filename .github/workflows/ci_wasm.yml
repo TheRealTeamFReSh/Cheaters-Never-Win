@@ -1,0 +1,95 @@
+name: Deploy WASM
+
+on:
+    push:
+        branches: [master, ci_pipeline]
+    pull_request:
+        types: [closed] # only closed PR get through
+        branches: [master]
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        needs: clean
+        steps:
+            - uses: actions/checkout@v2
+
+            - uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: nightly
+                  override: true
+
+            - uses: actions/cache@v2
+              with:
+                  path: |
+                      target
+                  key: ${{ runner.os }}-cargo-check-test-nightly-${{ hashFiles('**/Cargo.lock') }}
+
+            # install wasm-bindgen
+            - uses: jetli/wasm-bindgen-action@v0.1.0
+              with:
+                  # Optional version of wasm-bindgen to install(eg. '0.2.68', 'latest')
+                  version: "latest"
+
+            - name: Install alsa
+              run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev
+              if: ${{ runner.os == 'Linux' }}
+
+            - name: Install udev
+              run: sudo apt-get update; sudo apt-get install --no-install-recommends libudev-dev
+              if: ${{ runner.os == 'Linux' }}
+
+            - name: Install target
+              run: rustup target install wasm32-unknown-unknown
+
+            - name: Build wasm target
+              run: cargo build --release --no-default-features --target wasm32-unknown-unknown
+              env:
+                  CARGO_INCREMENTAL: 0
+
+            # make an embeddable version in /out/
+            - name: Wasm bindgen
+              run: wasm-bindgen --out-dir ./out/ --target web ./target/wasm32-unknown-unknown/release/bevy_jam_1.wasm
+
+            - name: Copy to gh-branch
+              env:
+                  SRC_FOLDER_PATH: "./out/ ./gh-pages/"
+                  TARGET_BRANCH: "gh-pages"
+              run: |
+                  files=$(find $SRC_FOLDER_PATH -type f) # get the file list
+                  git config --global user.name 'GitHub Action'
+                  git config --global user.email 'action@github.com'
+                  git fetch                         # fetch branches
+                  git checkout $TARGET_BRANCH       # checkout to your branch
+                  git checkout ${GITHUB_REF##*/} -- $files # copy files from the source branch
+                  git add -A
+                  git diff-index --quiet HEAD ||  git commit -am "deploy files"  # commit to the repository (ignore if no modification)
+                  git push origin $TARGET_BRANCH # push to remote branch
+
+    clean:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+
+            - uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: nightly
+                  components: rustfmt, clippy
+                  override: true
+
+            - name: Install alsa
+              run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev
+
+            - name: Install udev
+              run: sudo apt-get update; sudo apt-get install --no-install-recommends libudev-dev
+
+            #- name: Check the format
+            #  run: cargo +nightly-2021-03-24 fmt --all -- --check
+
+            # type complexity must be ignored because we use huge templates for queries
+            # -A clippy::manual-strip: strip_prefix support was added in 1.45. we want to support earlier rust versions
+            #- name: Run clippy
+            #  run: cargo clippy --all-targets --all-features -- -D warnings

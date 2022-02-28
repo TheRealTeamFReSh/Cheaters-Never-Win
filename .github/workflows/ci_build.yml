@@ -39,7 +39,7 @@ jobs:
               run: sudo apt-get update; sudo apt-get install --no-install-recommends libudev-dev
               if: ${{ runner.os == 'Linux' }}
 
-            - name: Build
+            - name: Check
               run: cargo check
               env:
                   CARGO_INCREMENTAL: 0

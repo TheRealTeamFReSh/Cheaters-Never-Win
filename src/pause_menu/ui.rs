@@ -1,55 +1,7 @@
 use bevy::prelude::*;
-use bevy_ninepatch::{NinePatchBuilder, NinePatchBundle, NinePatchData, NinePatchPlugin};
+use bevy_ninepatch::{NinePatchBuilder, NinePatchBundle, NinePatchData};
 
-use crate::states::GameStates;
-
-#[derive(Component)]
-pub struct PauseMenuEntity;
-
-pub struct PauseMenuPlugin;
-impl Plugin for PauseMenuPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugin(NinePatchPlugin::<()>::default());
-
-        // on enter
-        app.add_system_set(SystemSet::on_enter(GameStates::PauseMenu).with_system(build_ui));
-        // on update
-        app.add_system_set(SystemSet::on_update(GameStates::Main).with_system(open_pause_menu));
-        app.add_system_set(
-            SystemSet::on_update(GameStates::PauseMenu).with_system(close_pause_menu),
-        );
-        // on exit
-        app.add_system_set(SystemSet::on_exit(GameStates::PauseMenu).with_system(destroy_menu));
-    }
-}
-
-fn destroy_menu(mut commands: Commands, query: Query<Entity, With<PauseMenuEntity>>) {
-    info!("[PauseMenuPlugin] Destroying state entities before exiting...");
-    for entity in query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
-    info!("[PauseMenuPlugin] Exiting state");
-}
-
-fn open_pause_menu(
-    mut keyboard: ResMut<Input<KeyCode>>,
-    mut game_state: ResMut<State<GameStates>>,
-) {
-    if keyboard.just_pressed(KeyCode::Escape) {
-        game_state.push(GameStates::PauseMenu).unwrap();
-        keyboard.reset(KeyCode::Escape);
-    }
-}
-
-fn close_pause_menu(
-    mut keyboard: ResMut<Input<KeyCode>>,
-    mut game_state: ResMut<State<GameStates>>,
-) {
-    if keyboard.just_pressed(KeyCode::Escape) {
-        game_state.pop().unwrap();
-        keyboard.reset(KeyCode::Escape);
-    }
-}
+use crate::pause_menu::button::UIButton;
 
 // building the UI of the console
 pub fn build_ui(
@@ -95,6 +47,21 @@ pub fn build_ui(
         ..Default::default()
     };
 
+    // container
+    let container = NodeBundle {
+        style: Style {
+            position_type: PositionType::Relative,
+            margin: Rect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::ColumnReverse,
+            size: Size::new(Val::Px(500.), Val::Px(400.)),
+            ..Default::default()
+        },
+        color: Color::rgba(0., 0., 0., 0.).into(),
+        ..Default::default()
+    };
+
     // background
     let background = NinePatchBundle {
         style: Style {
@@ -102,7 +69,7 @@ pub fn build_ui(
             margin: Rect::all(Val::Auto),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            size: Size::new(Val::Px(500.), Val::Px(300.)),
+            size: Size::new(Val::Px(500.), Val::Px(400.)),
             ..Default::default()
         },
         nine_patch_data: NinePatchData {
@@ -134,15 +101,24 @@ pub fn build_ui(
         ..Default::default()
     };
 
+    let resume_btn = UIButton::new("Resume".to_string(), font_handle.clone(), || {});
+    let options_btn = UIButton::new("Options".to_string(), font_handle.clone(), || {});
+    let quit_btn = UIButton::new("Quit".to_string(), font_handle.clone(), || {});
+
     // ---------- UI TREE CONSTRUCTION ----------//
 
     commands
         .spawn_bundle(parent_component)
         .with_children(|parent| {
             parent.spawn_bundle(background);
-            parent.spawn_bundle(pause_title);
+            parent.spawn_bundle(container).with_children(|parent| {
+                parent.spawn_bundle(pause_title);
+                resume_btn.spawn(parent);
+                options_btn.spawn(parent);
+                quit_btn.spawn(parent);
+            });
         })
-        .insert(PauseMenuEntity);
+        .insert(super::PauseMenuEntity);
 
     info!("[PauseMenuPlugin] UI constructed");
 }

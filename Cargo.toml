@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.6.0", features = ["dynamic"] }
 bevy-inspector-egui = "0.8.2"
+bevy_loading = "0.2.0"
 rand = "0.8.5"
 
 # Enabling bevylint

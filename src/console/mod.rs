@@ -1,7 +1,8 @@
-use crate::states::GameStates;
 use bevy::prelude::*;
+use bevy_loading::prelude::*;
 
 use self::event::{PrintToConsoleEvent, SendCommandEvent};
+use crate::states::GameStates;
 
 mod commands;
 mod event;
@@ -16,8 +17,21 @@ pub struct ConsolePlugin;
 
 impl Plugin for ConsolePlugin {
     fn build(&self, app: &mut App) {
+        // assets loading
+        app.add_plugin(LoadingPlugin {
+            loading_state: GameStates::ConsoleLoading,
+            next_state: GameStates::ConsoleLoading,
+        });
+
+        app.add_system_set(
+            SystemSet::on_enter(GameStates::ConsoleLoading).with_system(load_overlay),
+        );
+
+        // plugin building
         app.insert_resource(ConsoleData {
             input: String::from(""),
+            history_index: 0,
+            history: Vec::new(),
             lines: utils::welcome_lines(),
         })
         .add_event::<PrintToConsoleEvent>()
@@ -48,8 +62,25 @@ impl Plugin for ConsolePlugin {
     }
 }
 
+pub struct ConsoleAssets {
+    overlay: Handle<Image>,
+}
+
+fn load_overlay(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut loading: ResMut<AssetsLoading>,
+) {
+    let overlay = asset_server.load("crt.png");
+    loading.add(&overlay);
+
+    commands.insert_resource(ConsoleAssets { overlay })
+}
+
 pub struct ConsoleData {
     input: String,
+    history_index: usize,
+    history: Vec<String>,
     lines: Vec<String>,
 }
 

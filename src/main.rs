@@ -33,7 +33,7 @@ fn main() {
 
 fn open_console(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<states::GameStates>>) {
     if keyboard.just_pressed(KeyCode::E) {
-        game_state.push(states::GameStates::Console).unwrap();
+        game_state.push(states::GameStates::ConsoleLoading).unwrap();
     }
 }
 

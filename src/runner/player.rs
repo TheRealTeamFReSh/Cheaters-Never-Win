@@ -81,7 +81,7 @@ fn move_character(
                 }
             }
         }
-        GameStates::Console => {}
+        _ => {}
     }
 }
 

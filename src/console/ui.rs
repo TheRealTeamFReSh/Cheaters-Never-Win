@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use super::ConsoleAssets;
+
 // Components
 #[derive(Component)]
 pub struct ConsoleForeground;
@@ -30,7 +32,7 @@ pub fn hide_foreground(
 // building the UI of the console
 pub fn build_ui(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    console_assets: Res<ConsoleAssets>,
     window: Res<Windows>,
     camera: Query<&Transform>,
 ) {
@@ -73,7 +75,7 @@ pub fn build_ui(
             ),
             ..Default::default()
         },
-        image: asset_server.load("crt.png").into(),
+        image: console_assets.overlay.clone().into(),
         ..Default::default()
     };
 

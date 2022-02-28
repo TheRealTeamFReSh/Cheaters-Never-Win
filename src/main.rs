@@ -1,10 +1,12 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_rapier2d::prelude::*;
 
 mod console;
-mod states;
-
+mod physics;
+mod platforms;
 mod runner;
+mod states;
 
 fn main() {
     App::new()
@@ -19,6 +21,9 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(console::ConsolePlugin)
         .add_plugin(runner::RunnerPlugin)
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(physics::PhysicsPlugin)
+        .add_plugin(platforms::PlatformsPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(setup)
         // handling console state change

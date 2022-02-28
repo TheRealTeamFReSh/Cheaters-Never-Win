@@ -1,10 +1,13 @@
 use crate::states::GameStates;
 use bevy::{prelude::*, render::camera::Camera};
+use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 
 #[derive(Debug, Component)]
 pub struct Player {
     pub speed: f32,
+    pub acceleration: f32,
+    pub deceleration: f32,
 }
 
 #[derive(Component)]
@@ -14,10 +17,13 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_character)
-            .add_system(move_character)
-            .add_system(follow_player_camera)
-            .add_system(animate_sprite);
+        app.add_startup_system(spawn_character.after("setup_physics"))
+            .add_system_set(
+                SystemSet::on_update(GameStates::Main)
+                    .with_system(follow_player_camera)
+                    .with_system(animate_sprite)
+                    .with_system(move_character),
+            );
     }
 }
 
@@ -26,23 +32,49 @@ fn spawn_character(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    rapier_config: Res<RapierConfiguration>,
 ) {
     let texture_handle = asset_server.load("gabe-idle-run.png");
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(24.0, 24.0), 7, 1);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    let player = Player { speed: 5.0 };
+    let player = Player {
+        speed: 5.0,
+        acceleration: 0.2,
+        deceleration: 0.2,
+    };
+
+    let collider_size_hx = 24.0 * 2.0 / rapier_config.scale / 2.0;
+    let collider_size_hy = 24.0 * 2.0 / rapier_config.scale / 2.0;
 
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
                 scale: Vec3::new(2.0, 2.0, 1.0),
-                translation: Vec3::new(0.0, -200.0, 100.0),
+                translation: Vec3::new(0.0, 0.0, 1.0),
                 ..Default::default()
             },
             ..Default::default()
         })
+        .insert_bundle(RigidBodyBundle {
+            body_type: RigidBodyType::Dynamic.into(),
+            mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
+            position: Vec2::new(0.0, -200.0 / rapier_config.scale).into(),
+            ..Default::default()
+        })
+        .insert_bundle(ColliderBundle {
+            shape: ColliderShape::cuboid(collider_size_hx, collider_size_hy).into(),
+            material: ColliderMaterial {
+                friction: 0.0,
+                restitution: 0.0,
+                ..Default::default()
+            }
+            .into(),
+            ..Default::default()
+        })
+        .insert(ColliderPositionSync::Discrete)
         .insert(AnimationTimer(Timer::from_seconds(0.1, true)))
+        .insert(Name::new("Player"))
         .insert(player);
 }
 
@@ -65,23 +97,32 @@ fn animate_sprite(
 }
 
 fn move_character(
-    app_state: Res<State<GameStates>>,
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Player, &mut Transform)>,
+    rapier_config: Res<RapierConfiguration>,
+    mut query: Query<(&Player, &mut RigidBodyVelocityComponent)>,
 ) {
-    match app_state.current() {
-        GameStates::Main => {
-            for (player, mut transform) in query.iter_mut() {
-                if keyboard_input.pressed(KeyCode::A) {
-                    transform.translation.x += -1.0 * player.speed;
-                    transform.rotation = Quat::from_rotation_y(PI).into();
-                } else if keyboard_input.pressed(KeyCode::D) {
-                    transform.translation.x += 1.0 * player.speed;
-                    transform.rotation = Quat::from_rotation_y(0.0).into();
-                }
+    for (player, mut rb_vel) in query.iter_mut() {
+        let up = keyboard_input.pressed(KeyCode::W);
+        let down = keyboard_input.pressed(KeyCode::S);
+        let left = keyboard_input.pressed(KeyCode::A);
+        let right = keyboard_input.pressed(KeyCode::D);
+
+        let x_axis = -(left as i8) + right as i8;
+
+        if x_axis != 0 {
+            rb_vel.linvel.x += player.acceleration * (x_axis as f32) * rapier_config.scale;
+            if rb_vel.linvel.x.abs() > player.speed * rapier_config.scale {
+                rb_vel.linvel.x =
+                    (rb_vel.linvel.x / rb_vel.linvel.x.abs()) * player.speed * rapier_config.scale;
             }
+        } else if rb_vel.linvel.x.abs() > 0.01 {
+            // decelerate
+            rb_vel.linvel.x -= player.deceleration
+                * (rb_vel.linvel.x / rb_vel.linvel.x.abs())
+                * rapier_config.scale;
+        } else {
+            rb_vel.linvel.x = 0.0;
         }
-        GameStates::Console => {}
     }
 }
 

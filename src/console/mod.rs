@@ -1,12 +1,16 @@
 use bevy::prelude::*;
 use bevy_loading::prelude::*;
 
-use self::event::{PrintToConsoleEvent, SendCommandEvent};
+use self::{
+    event::{PrintToConsoleEvent, SendCommandEvent},
+    loading_screen::LoadingScreenPlugin,
+};
 use crate::states::GameStates;
 
 mod commands;
 mod event;
 mod input;
+mod loading_screen;
 mod ui;
 mod utils;
 
@@ -18,9 +22,10 @@ pub struct ConsolePlugin;
 impl Plugin for ConsolePlugin {
     fn build(&self, app: &mut App) {
         // assets loading
+        app.add_plugin(LoadingScreenPlugin);
         app.add_plugin(LoadingPlugin {
             loading_state: GameStates::ConsoleLoading,
-            next_state: GameStates::ConsoleLoading,
+            next_state: GameStates::Console,
         });
 
         app.add_system_set(

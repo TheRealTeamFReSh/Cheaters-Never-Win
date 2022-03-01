@@ -110,7 +110,7 @@ pub fn animate_loading_text(
         },
         TextSection {
             style: TextStyle {
-                font: font_handle.clone(),
+                font: font_handle,
                 font_size: 48.,
                 color: Color::rgba_u8(211, 211, 207, 255),
             },

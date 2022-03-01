@@ -37,7 +37,7 @@ pub fn command_handler(
                 )));
                 print_to_console.send(PrintToConsoleEvent(format!(
                     "Activation result: {}",
-                    cheat_codes_res.activate_code(args[1]).to_string()
+                    cheat_codes_res.activate_code(args[1]).repr()
                 )));
             }
             "exit" => {

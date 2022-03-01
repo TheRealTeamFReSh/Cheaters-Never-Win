@@ -50,7 +50,7 @@ fn spawn_character(
             texture_atlas: texture_atlas_handle,
             transform: Transform {
                 scale: Vec3::new(2.0, 2.0, 1.0),
-                translation: Vec3::new(0.0, 0.0, 1.0),
+                translation: Vec3::new(0.0, 0.0, 100.0),
                 ..Default::default()
             },
             ..Default::default()

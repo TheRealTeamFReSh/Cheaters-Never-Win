@@ -77,7 +77,8 @@ impl CheatCodeResource {
             .codes
             .iter()
             .filter(|(kind, code)| {
-                code.rarity == CheatCodeRarity::Mandatory && !self.is_code_activated(kind.clone())
+                code.rarity == CheatCodeRarity::Mandatory
+                    && !self.is_code_activated(&(*kind).clone())
             })
             .map(|(kind, _)| kind.clone())
             .collect::<Vec<CheatCodeKind>>();

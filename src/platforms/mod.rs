@@ -1,3 +1,4 @@
+use crate::states::GameStates;
 use bevy::prelude::*;
 use ron::de::from_bytes;
 pub struct PlatformsPlugin;
@@ -10,6 +11,9 @@ impl Plugin for PlatformsPlugin {
         app.insert_resource(
             from_bytes::<chunk::ChunksResource>(include_bytes!("../../data/chunks.ron")).unwrap(),
         )
-        .add_startup_system(chunk::chunk_test_system.after("setup_physics"));
+        .add_system_set(
+            SystemSet::on_enter(GameStates::Main)
+                .with_system(chunk::chunk_test_system.after("setup_physics")),
+        );
     }
 }

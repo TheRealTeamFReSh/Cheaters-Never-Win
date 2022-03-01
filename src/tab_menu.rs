@@ -128,7 +128,7 @@ fn build_ui(
             },
             ..Default::default()
         },
-        color: Color::rgba_u8(0, 0, 0, 0).into(),
+        color: Color::rgba_u8(0, 0, 0, 150).into(),
         ..Default::default()
     };
 

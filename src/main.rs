@@ -3,6 +3,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 use cheat_codes::CheatCodeResource;
 
+mod camera;
 mod cheat_codes;
 mod console;
 mod enemies;
@@ -30,24 +31,10 @@ fn main() {
         .add_plugin(platforms::PlatformsPlugin)
         .add_plugin(enemies::EnemiesPlugin)
         .add_state(states::GameStates::Main)
-        .add_startup_system(setup)
+        .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)
-        // handling console state change
-        .add_system_set(SystemSet::on_update(states::GameStates::Main).with_system(open_console))
         .run();
-}
-
-fn open_console(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<states::GameStates>>) {
-    if keyboard.just_pressed(KeyCode::E) {
-        game_state.push(states::GameStates::ConsoleLoading).unwrap();
-    }
-}
-
-fn setup(mut commands: Commands) {
-    info!("Setting up cameras");
-    commands.spawn_bundle(UiCameraBundle::default());
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
 
 fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {

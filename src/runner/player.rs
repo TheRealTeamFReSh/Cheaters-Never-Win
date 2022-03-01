@@ -1,4 +1,4 @@
-use crate::states::GameStates;
+use crate::{camera::TwoDCameraComponent, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
@@ -50,7 +50,7 @@ fn spawn_character(
             texture_atlas: texture_atlas_handle,
             transform: Transform {
                 scale: Vec3::new(2.0, 2.0, 1.0),
-                translation: Vec3::new(0.0, 0.0, 1.0),
+                translation: Vec3::new(0.0, 0.0, 100.0),
                 ..Default::default()
             },
             ..Default::default()
@@ -127,7 +127,7 @@ fn move_character(
 
 fn follow_player_camera(
     player: Query<&Transform, (With<Player>, Without<Camera>)>,
-    mut camera: Query<&mut Transform, (With<Camera>, Without<Player>)>,
+    mut camera: Query<&mut Transform, (With<TwoDCameraComponent>, Without<Player>)>,
 ) {
     if let Some(player) = player.iter().next() {
         for mut transform in camera.iter_mut() {

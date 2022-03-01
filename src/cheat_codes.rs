@@ -26,7 +26,7 @@ pub enum CheatCodeActivationResult {
     AlreadyActivated(CheatCodeKind),
 }
 impl CheatCodeActivationResult {
-    pub fn to_string(&self) -> String {
+    pub fn repr(&self) -> String {
         match self {
             CheatCodeActivationResult::Activated(kind) => {
                 return format!("[{:?}] cheat code successfully activated", kind)
@@ -35,7 +35,7 @@ impl CheatCodeActivationResult {
                 return format!("[{:?}] already activated", kind)
             }
             CheatCodeActivationResult::NotFound => {
-                return "cheat code not recognized by the system".to_string()
+                "cheat code not recognized by the system".to_string()
             }
         }
     }
@@ -77,13 +77,14 @@ impl CheatCodeResource {
             .codes
             .iter()
             .filter(|(kind, code)| {
-                code.rarity == CheatCodeRarity::Mandatory && !self.is_code_activated(kind.clone())
+                code.rarity == CheatCodeRarity::Mandatory
+                    && !self.is_code_activated(&(*kind).clone())
             })
-            .map(|(kind, _)| kind.clone())
+            .map(|(kind, _)| *kind)
             .collect::<Vec<CheatCodeKind>>();
         // if there is a mandatory code to be chosen, then return it
-        if mandatories.len() > 0 {
-            return mandatories.choose(&mut rand::thread_rng()).unwrap().clone();
+        if !mandatories.is_empty() {
+            return *mandatories.choose(&mut rand::thread_rng()).unwrap();
         }
 
         // then we grab all the codes that haven't been activated yet
@@ -96,11 +97,11 @@ impl CheatCodeResource {
                     .dependencies
                     .iter()
                     .filter(|kind| !self.is_code_activated(kind))
-                    .collect::<Vec<&CheatCodeKind>>();
+                    .count();
 
                 // if the code is not activated and has no missing deps
                 // then it's a potential candidate
-                missing_deps.len() == 0 && !self.is_code_activated(kind)
+                missing_deps == 0 && !self.is_code_activated(kind)
             })
             .map(|(_, code)| code)
             .collect::<Vec<&CheatCode>>();
@@ -108,7 +109,7 @@ impl CheatCodeResource {
         // then return a random code based on their rarity (rarity is the weight)
 
         available_codes
-            .choose_weighted(&mut rand::thread_rng(), |code| code.rarity.clone() as u8)
+            .choose_weighted(&mut rand::thread_rng(), |code| code.rarity as u8)
             .unwrap()
             .kind
     }
@@ -119,15 +120,15 @@ impl CheatCodeResource {
             // it we found a code
             if code.text.eq(text) {
                 if self.is_code_activated(&code.kind) {
-                    return CheatCodeActivationResult::AlreadyActivated(code.kind.clone());
+                    return CheatCodeActivationResult::AlreadyActivated(code.kind);
                 }
 
                 // if the code hasn't been activated do it
-                self.activated.push(code.kind.clone());
-                return CheatCodeActivationResult::Activated(code.kind.clone());
+                self.activated.push(code.kind);
+                return CheatCodeActivationResult::Activated(code.kind);
             }
         }
-        return CheatCodeActivationResult::NotFound;
+        CheatCodeActivationResult::NotFound
     }
 
     pub fn is_code_activated(&self, kind: &CheatCodeKind) -> bool {

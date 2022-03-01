@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::camera::UICameraComponent;
+
 use super::ConsoleAssets;
 
 // Components
@@ -34,7 +36,7 @@ pub fn build_ui(
     mut commands: Commands,
     console_assets: Res<ConsoleAssets>,
     window: Res<Windows>,
-    camera: Query<&Transform>,
+    camera: Query<&Transform, With<UICameraComponent>>,
 ) {
     info!("[ConsolePlugin] Building console UI");
 

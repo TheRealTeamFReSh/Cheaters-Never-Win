@@ -4,10 +4,31 @@ use std::collections::HashMap;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum CheatCodeKind {
+    // Mandatory
     Jump,
-    DoubleJump,
+
+    // Common
+    Crouch,
     Attack,
+    AttackDmgBoost,
+    AttackFireRateBoost,
     MoveLeft,
+    SpeedBoost1,
+    SpeedBoost2,
+    SpeedBoost3,
+    Armor,
+    Dash,
+
+    // Rare
+    DoubleJump,
+    SpeedBoost4,
+    SpeedBoost5,
+    Shield,
+
+    // Legendary
+    ExtraLife,
+    TempInvicibility,
+    Fly,
 }
 
 // here the value is the weight for the weighted distribution
@@ -180,6 +201,18 @@ impl CheatCodeResource {
             activated: Vec::new(),
         }
     }
+}
+
+fn insert_cheat(
+    codes: &mut HashMap<CheatCodeKind, CheatCode>,
+    kind: CheatCodeKind,
+    rarity: CheatCodeRarity,
+    dependencies: Vec<CheatCodeKind>,
+) {
+    codes.insert(
+        kind,
+        CheatCode::new(kind, rarity, &generate_random_code(rarity), dependencies),
+    );
 }
 
 pub fn generate_random_code(rarity: CheatCodeRarity) -> String {

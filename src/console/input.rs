@@ -54,11 +54,9 @@ pub fn handle_input_keys(
                     | KeyCode::RAlt
                     | KeyCode::LControl
                     | KeyCode::RControl
-                    | KeyCode::F1
-                    | KeyCode::Up
-                    | KeyCode::Down
                     | KeyCode::Right
                     | KeyCode::Left
+                    | KeyCode::F1
                     | KeyCode::F2
                     | KeyCode::F3
                     | KeyCode::F4
@@ -75,9 +73,37 @@ pub fn handle_input_keys(
                     | KeyCode::Grave
                     | KeyCode::Backslash => {}
 
-                    KeyCode::Return => {
+                    KeyCode::Up => {
+                        // don't do anything if at top
+                        if data.history_index == 0 {
+                            return;
+                        }
+
+                        data.history_index = (data.history_index - 1).max(0);
+                        data.input = data.history[data.history_index].clone();
+                    }
+
+                    KeyCode::Down => {
+                        // don't do anything if at the bottom
+                        if data.history_index == data.history.len() {
+                            return;
+                        }
+
+                        data.history_index = (data.history_index + 1).min(data.history.len());
+
+                        if data.history_index != data.history.len() {
+                            data.input = data.history[data.history_index].clone();
+                        } else {
+                            data.input.clear();
+                        }
+                    }
+
+                    KeyCode::Return | KeyCode::NumpadEnter => {
                         // sending the command
-                        send_command.send(SendCommandEvent(data.input.clone()));
+                        let command = data.input.clone();
+                        send_command.send(SendCommandEvent(command.clone()));
+                        data.history.push(command.clone());
+                        data.history_index = data.history.len();
                         // clearing the input
                         data.input.clear();
                     }
@@ -90,7 +116,7 @@ pub fn handle_input_keys(
                             format!("{:?}", key_code).to_lowercase()
                         };
 
-                        trace!("Pressed key: {:?}", key_code_str);
+                        // trace!("Pressed key: {:?}", key_code_str);
                         data.input.push_str(&key_code_str);
                     }
                 }

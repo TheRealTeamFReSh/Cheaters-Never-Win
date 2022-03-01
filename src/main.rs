@@ -33,7 +33,7 @@ fn main() {
 
 fn open_console(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<states::GameStates>>) {
     if keyboard.just_pressed(KeyCode::E) {
-        game_state.push(states::GameStates::Console).unwrap();
+        game_state.push(states::GameStates::ConsoleLoading).unwrap();
     }
 }
 
@@ -50,7 +50,11 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
     );
 
     let next_code = cheat_codes_res.get_next_code();
-    println!("Get next cheat code : {:?}", next_code);
+    let next_code_code = cheat_codes_res.codes.get(&next_code).unwrap();
+    println!(
+        "Get next cheat code: {:?} with code: {}",
+        next_code, next_code_code.text
+    );
 
     println!(
         "Is code activated: {}",

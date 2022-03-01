@@ -1,7 +1,13 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 use bevy_loading::{prelude::AssetsLoading, LoadingPlugin};
 
-use crate::{camera::UICameraComponent, states::GameStates};
+use crate::{
+    camera::UICameraComponent,
+    cheat_codes::{CheatCodeKind, CheatCodeResource},
+    states::GameStates,
+};
 
 pub struct TabMenuPlugin;
 impl Plugin for TabMenuPlugin {
@@ -63,13 +69,14 @@ fn close_menu_trigger(
 pub struct TabMenuAssets {
     background: Handle<Image>,
     font: Handle<Font>,
-    icon: Handle<Image>,
+    icons: HashMap<CheatCodeKind, Handle<Image>>,
 }
 
 fn load_assets(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut loading: ResMut<AssetsLoading>,
+    cheat_codes_res: Res<CheatCodeResource>,
 ) {
     let background = asset_server.load("open_book.png");
     loading.add(&background);
@@ -77,13 +84,18 @@ fn load_assets(
     let font = asset_server.load("fonts/OldLondon.ttf");
     loading.add(&font);
 
-    let icon = asset_server.load("cheat_codes/jump.png");
-    loading.add(&icon);
+    let mut icons = HashMap::new();
+
+    for (kind, code) in cheat_codes_res.codes.iter() {
+        let icon = asset_server.load(&format!("cheat_codes/{}", code.image));
+        loading.add(&icon);
+        icons.insert(*kind, icon);
+    }
 
     commands.insert_resource(TabMenuAssets {
         background,
         font,
-        icon,
+        icons,
     })
 }
 
@@ -92,6 +104,7 @@ fn build_ui(
     assets: Res<TabMenuAssets>,
     window: Res<Windows>,
     camera: Query<&Transform, With<UICameraComponent>>,
+    cheat_codes_res: Res<CheatCodeResource>,
 ) {
     let current_window = window.get_primary().unwrap();
     let mut camera_pos = 0.0;
@@ -164,7 +177,7 @@ fn build_ui(
             size: Size::new(Val::Percent(50.), Val::Percent(60.)),
             flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::FlexStart,
-            align_items: AlignItems::FlexEnd,
+            align_items: AlignItems::FlexStart,
             align_content: AlignContent::FlexStart,
             flex_wrap: FlexWrap::WrapReverse,
             position: Rect {
@@ -193,8 +206,8 @@ fn build_ui(
         ..Default::default()
     };
 
-    let code_icon = ImageBundle {
-        image: assets.icon.clone().into(),
+    let code_icon = |kind: &CheatCodeKind| ImageBundle {
+        image: assets.icons.get(kind).unwrap().clone().into(),
         style: Style {
             size: Size::new(Val::Px(48.), Val::Auto),
             margin: Rect {
@@ -218,8 +231,10 @@ fn build_ui(
                     parent.spawn_bundle(run_stats);
                 });
                 parent.spawn_bundle(right_page).with_children(|parent| {
-                    for _ in 0..15 {
-                        parent.spawn_bundle(code_icon.clone());
+                    for kind in cheat_codes_res.codes.keys() {
+                        if cheat_codes_res.is_code_activated(kind) {
+                            parent.spawn_bundle(code_icon(kind).clone());
+                        }
                     }
                 });
             });

@@ -59,4 +59,8 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
 
     let result = cheat_codes_res.activate_code("jump");
     println!("Trying to activate code : {:?}", &result);
+
+    for (_, code) in cheat_codes_res.codes.iter() {
+        println!("Code: {:?}, text: {}", code.kind, code.text);
+    }
 }

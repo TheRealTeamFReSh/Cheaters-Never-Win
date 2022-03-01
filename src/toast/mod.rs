@@ -1,5 +1,10 @@
 use bevy::prelude::*;
 use bevy_ninepatch::*;
+use bevy_tweening::{
+    lens::UiPositionLens, Animator, EaseFunction, Tween, TweeningPlugin, TweeningType,
+};
+
+use crate::cheat_codes::CheatCodeRarity;
 
 pub struct ShowToast(String);
 
@@ -11,9 +16,10 @@ impl Plugin for ToastPlugin {
     fn build(&self, app: &mut App) {
         // always here so no need for a systemset
         app.add_startup_system(build_ui);
-        app.add_system(update_content);
+        app.add_system(update_content).add_system(test);
         app.add_event::<ShowToast>();
         app.add_plugin(NinePatchPlugin::<()>::default());
+        app.add_plugin(TweeningPlugin);
     }
 }
 
@@ -60,7 +66,7 @@ fn build_ui(
             margin: Rect::all(Val::Auto),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            size: Size::new(Val::Px(400.), Val::Px(80.)),
+            size: Size::new(Val::Px(400.), Val::Px(60.)),
             ..Default::default()
         },
         nine_patch_data: NinePatchData::with_single_content(
@@ -71,8 +77,30 @@ fn build_ui(
         ..Default::default()
     };
 
+    let tween = Tween::new(
+        EaseFunction::CubicInOut,
+        TweeningType::PingPong,
+        std::time::Duration::from_secs(2),
+        UiPositionLens {
+            start: Rect {
+                left: Val::Auto,
+                top: Val::Px(10.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+            end: Rect {
+                left: Val::Auto,
+                top: Val::Px(-200.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+        },
+    );
+
     // Building UI tree
-    commands.spawn_bundle(background);
+    commands
+        .spawn_bundle(background)
+        .insert(Animator::new(tween));
 }
 
 fn update_content(
@@ -82,5 +110,13 @@ fn update_content(
     for ShowToast(content) in show_toast_ev.iter() {
         let mut text = query.get_single_mut().unwrap();
         text.sections[0].value = content.clone();
+    }
+}
+
+fn test(keyboard: Res<Input<KeyCode>>, mut toast_writer: EventWriter<ShowToast>) {
+    if keyboard.just_pressed(KeyCode::T) && keyboard.pressed(KeyCode::LControl) {
+        toast_writer.send(ShowToast(crate::cheat_codes::generate_random_code(
+            CheatCodeRarity::Legendary,
+        )));
     }
 }

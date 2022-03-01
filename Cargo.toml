@@ -6,10 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version = "0.6.0", features = ["dynamic"] }
+bevy = { version = "0.6.0" }
 bevy-inspector-egui = "0.8.2"
 bevy_loading = "0.2.0"
 rand = "0.8.5"
+
+[features]
+default = ["bevy/dynamic"] # to make the wasm github action work with the --no-default-feature flag
 
 # Enabling bevylint
 [workspace.metadata.dylint]

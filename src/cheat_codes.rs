@@ -162,45 +162,147 @@ impl CheatCodeResource {
     pub fn new() -> Self {
         let mut codes: HashMap<CheatCodeKind, CheatCode> = HashMap::new();
 
-        codes.insert(
+        // Mandatory
+        insert_cheat(
+            &mut codes,
             CheatCodeKind::Jump,
-            CheatCode::new(
-                CheatCodeKind::Jump,
-                CheatCodeRarity::Mandatory,
-                &generate_random_code(CheatCodeRarity::Mandatory),
-                vec![],
-                "jump.png".to_string(),
-            ),
+            CheatCodeRarity::Mandatory,
+            vec![],
+            "jump.png",
         );
-        codes.insert(
-            CheatCodeKind::DoubleJump,
-            CheatCode::new(
-                CheatCodeKind::DoubleJump,
-                CheatCodeRarity::Common,
-                &generate_random_code(CheatCodeRarity::Common),
-                vec![CheatCodeKind::Jump],
-                "double_jump.png".to_string(),
-            ),
+
+        // Common
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::Crouch,
+            CheatCodeRarity::Common,
+            vec![],
+            "crouch.png",
         );
-        codes.insert(
+        insert_cheat(
+            &mut codes,
             CheatCodeKind::Attack,
-            CheatCode::new(
-                CheatCodeKind::Attack,
-                CheatCodeRarity::Rare,
-                &generate_random_code(CheatCodeRarity::Rare),
-                vec![],
-                "attack.png".to_string(),
-            ),
+            CheatCodeRarity::Common,
+            vec![],
+            "attack.png",
         );
-        codes.insert(
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::AttackDmgBoost,
+            CheatCodeRarity::Common,
+            vec![CheatCodeKind::Attack],
+            "attack_dmg_boost.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::AttackFireRateBoost,
+            CheatCodeRarity::Common,
+            vec![CheatCodeKind::Attack],
+            "attack_fr_boost.png",
+        );
+        insert_cheat(
+            &mut codes,
             CheatCodeKind::MoveLeft,
-            CheatCode::new(
-                CheatCodeKind::MoveLeft,
-                CheatCodeRarity::Legendary,
-                &generate_random_code(CheatCodeRarity::Legendary),
-                vec![],
-                "move_left.png".to_string(),
-            ),
+            CheatCodeRarity::Common,
+            vec![],
+            "move_left.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::SpeedBoost1,
+            CheatCodeRarity::Common,
+            vec![],
+            "speed.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::SpeedBoost2,
+            CheatCodeRarity::Common,
+            vec![CheatCodeKind::SpeedBoost1],
+            "speed.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::SpeedBoost3,
+            CheatCodeRarity::Common,
+            vec![CheatCodeKind::SpeedBoost1, CheatCodeKind::SpeedBoost2],
+            "speed.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::Armor,
+            CheatCodeRarity::Common,
+            vec![],
+            "armor.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::Dash,
+            CheatCodeRarity::Common,
+            vec![],
+            "dash.png",
+        );
+
+        // Rare
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::DoubleJump,
+            CheatCodeRarity::Rare,
+            vec![CheatCodeKind::Jump],
+            "double_jump.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::SpeedBoost4,
+            CheatCodeRarity::Rare,
+            vec![
+                CheatCodeKind::SpeedBoost1,
+                CheatCodeKind::SpeedBoost2,
+                CheatCodeKind::SpeedBoost3,
+            ],
+            "speed.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::SpeedBoost5,
+            CheatCodeRarity::Rare,
+            vec![
+                CheatCodeKind::SpeedBoost1,
+                CheatCodeKind::SpeedBoost2,
+                CheatCodeKind::SpeedBoost3,
+                CheatCodeKind::SpeedBoost4,
+            ],
+            "speed.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::Shield,
+            CheatCodeRarity::Rare,
+            vec![CheatCodeKind::Jump],
+            "shield.png",
+        );
+
+        // Legendary
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::ExtraLife,
+            CheatCodeRarity::Legendary,
+            vec![],
+            "extra_life.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::TempInvicibility,
+            CheatCodeRarity::Legendary,
+            vec![CheatCodeKind::Armor, CheatCodeKind::Shield],
+            "temp_invincibility.png",
+        );
+        insert_cheat(
+            &mut codes,
+            CheatCodeKind::Fly,
+            CheatCodeRarity::Legendary,
+            vec![CheatCodeKind::Jump, CheatCodeKind::DoubleJump],
+            "fly.png",
         );
 
         Self {
@@ -215,10 +317,17 @@ fn insert_cheat(
     kind: CheatCodeKind,
     rarity: CheatCodeRarity,
     dependencies: Vec<CheatCodeKind>,
+    image_path: &str,
 ) {
     codes.insert(
         kind,
-        CheatCode::new(kind, rarity, &generate_random_code(rarity), dependencies),
+        CheatCode::new(
+            kind,
+            rarity,
+            &generate_random_code(rarity),
+            dependencies,
+            image_path.to_string(),
+        ),
     );
 }
 

@@ -32,6 +32,10 @@ impl Plugin for ConsolePlugin {
             SystemSet::on_enter(GameStates::ConsoleLoading).with_system(load_overlay),
         );
 
+        app.add_system_set(
+            SystemSet::on_update(GameStates::Main).with_system(open_console_handler),
+        );
+
         // plugin building
         app.insert_resource(ConsoleData {
             input: String::from(""),
@@ -104,9 +108,23 @@ fn destroy_console_state_entities(
     info!("[ConsolePlugin] Exiting state");
 }
 
-fn close_console_handler(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<GameStates>>) {
+fn close_console_handler(
+    mut keyboard: ResMut<Input<KeyCode>>,
+    mut game_state: ResMut<State<GameStates>>,
+) {
     if keyboard.just_pressed(KeyCode::Escape) {
         game_state.pop().unwrap();
+        keyboard.reset(KeyCode::Escape);
+    }
+}
+
+fn open_console_handler(
+    mut keyboard: ResMut<Input<KeyCode>>,
+    mut game_state: ResMut<State<GameStates>>,
+) {
+    if keyboard.just_pressed(KeyCode::E) {
+        game_state.push(GameStates::ConsoleLoading).unwrap();
+        keyboard.reset(KeyCode::E);
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::states::GameStates;
+use crate::{camera::UICameraComponent, states::GameStates};
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -26,7 +26,11 @@ fn destroy_ui(mut commands: Commands, query: Query<Entity, With<LoadingScreenEnt
     info!("[LoadingScreenPlugin] Exiting state");
 }
 
-fn build_ui(mut commands: Commands, window: Res<Windows>, camera: Query<&Transform>) {
+fn build_ui(
+    mut commands: Commands,
+    window: Res<Windows>,
+    camera: Query<&Transform, With<UICameraComponent>>,
+) {
     info!("[LoadingScreenPlugin] Building loading screen");
 
     // setting the initial position of the window

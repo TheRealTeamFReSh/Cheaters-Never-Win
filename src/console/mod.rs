@@ -56,13 +56,15 @@ impl Plugin for ConsolePlugin {
         .add_system_set(
             SystemSet::on_update(GameStates::Console)
                 .with_system(update_input_area)
-                .with_system(update_lines_area),
+                .with_system(update_lines_area)
+                .with_system(event::add_message_events_to_console)
+                .label("update_ui"),
         )
         .add_system_set(
             SystemSet::on_update(GameStates::Console)
                 .with_system(input::handle_input_keys)
                 .with_system(commands::command_handler)
-                .with_system(event::add_message_events_to_console),
+                .after("update_ui"),
         )
         // on exit
         .add_system_set(
@@ -122,7 +124,7 @@ fn open_console_handler(
     mut keyboard: ResMut<Input<KeyCode>>,
     mut game_state: ResMut<State<GameStates>>,
 ) {
-    if keyboard.just_pressed(KeyCode::E) {
+    if keyboard.just_released(KeyCode::E) {
         game_state.push(GameStates::ConsoleLoading).unwrap();
         keyboard.reset(KeyCode::E);
     }

@@ -47,6 +47,7 @@ pub struct CheatCode {
     pub rarity: CheatCodeRarity,
     pub text: String,
     pub dependencies: Vec<CheatCodeKind>,
+    pub image: String,
 }
 
 impl CheatCode {
@@ -55,12 +56,14 @@ impl CheatCode {
         rarity: CheatCodeRarity,
         text: &str,
         dependencies: Vec<CheatCodeKind>,
+        image: String,
     ) -> Self {
         Self {
             kind,
             rarity,
             text: text.to_string(),
             dependencies,
+            image,
         }
     }
 }
@@ -145,6 +148,7 @@ impl CheatCodeResource {
                 CheatCodeRarity::Mandatory,
                 &generate_random_code(CheatCodeRarity::Mandatory),
                 vec![],
+                "jump.png".to_string(),
             ),
         );
         codes.insert(
@@ -154,6 +158,7 @@ impl CheatCodeResource {
                 CheatCodeRarity::Common,
                 &generate_random_code(CheatCodeRarity::Common),
                 vec![CheatCodeKind::Jump],
+                "double_jump.png".to_string(),
             ),
         );
         codes.insert(
@@ -163,6 +168,7 @@ impl CheatCodeResource {
                 CheatCodeRarity::Rare,
                 &generate_random_code(CheatCodeRarity::Rare),
                 vec![],
+                "attack.png".to_string(),
             ),
         );
         codes.insert(
@@ -172,6 +178,7 @@ impl CheatCodeResource {
                 CheatCodeRarity::Legendary,
                 &generate_random_code(CheatCodeRarity::Legendary),
                 vec![],
+                "move_left.png".to_string(),
             ),
         );
 

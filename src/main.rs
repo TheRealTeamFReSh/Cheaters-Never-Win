@@ -11,6 +11,7 @@ mod physics;
 mod platforms;
 mod runner;
 mod states;
+mod toast;
 
 fn main() {
     App::new()
@@ -30,6 +31,7 @@ fn main() {
         .add_plugin(physics::PhysicsPlugin)
         .add_plugin(platforms::PlatformsPlugin)
         .add_plugin(enemies::EnemiesPlugin)
+        .add_plugin(toast::ToastPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(camera::add_camera)
         // TODO: remove

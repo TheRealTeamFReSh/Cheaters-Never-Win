@@ -36,7 +36,7 @@ fn spawn_background(
 
     commands
         .spawn_bundle(SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle.clone(),
+            texture_atlas: texture_atlas_handle,
             transform: Transform {
                 scale: Vec3::new(2.0, 1.0, 1.0),
                 translation: Vec3::new(1280.0, 0.0, 0.0),

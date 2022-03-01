@@ -63,6 +63,7 @@ fn close_menu_trigger(
 pub struct TabMenuAssets {
     background: Handle<Image>,
     font: Handle<Font>,
+    icon: Handle<Image>,
 }
 
 fn load_assets(
@@ -76,7 +77,14 @@ fn load_assets(
     let font = asset_server.load("fonts/OldLondon.ttf");
     loading.add(&font);
 
-    commands.insert_resource(TabMenuAssets { background, font })
+    let icon = asset_server.load("cheat_codes/jump.png");
+    loading.add(&icon);
+
+    commands.insert_resource(TabMenuAssets {
+        background,
+        font,
+        icon,
+    })
 }
 
 fn build_ui(
@@ -139,7 +147,12 @@ fn build_ui(
         style: Style {
             size: Size::new(Val::Percent(50.), Val::Percent(60.)),
             justify_content: JustifyContent::Center,
+            align_self: AlignSelf::FlexEnd,
             align_items: AlignItems::Center,
+            position: Rect {
+                top: Val::Px(20.),
+                ..Default::default()
+            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 0).into(),
@@ -149,8 +162,15 @@ fn build_ui(
     let right_page = NodeBundle {
         style: Style {
             size: Size::new(Val::Percent(50.), Val::Percent(60.)),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::FlexEnd,
+            align_content: AlignContent::FlexStart,
+            flex_wrap: FlexWrap::WrapReverse,
+            position: Rect {
+                top: Val::Px(20.),
+                ..Default::default()
+            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 0).into(),
@@ -164,10 +184,24 @@ fn build_ui(
                 style: TextStyle {
                     font: assets.font.clone(),
                     color: Color::rgb_u8(74, 28, 33).into(),
-                    font_size: 24.,
+                    font_size: 20.,
                 },
                 ..Default::default()
             }],
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+
+    let code_icon = ImageBundle {
+        image: assets.icon.clone().into(),
+        style: Style {
+            size: Size::new(Val::Px(48.), Val::Auto),
+            margin: Rect {
+                right: Val::Px(5.),
+                bottom: Val::Px(5.),
+                ..Default::default()
+            },
             ..Default::default()
         },
         ..Default::default()
@@ -183,7 +217,11 @@ fn build_ui(
                 parent.spawn_bundle(left_page).with_children(|parent| {
                     parent.spawn_bundle(run_stats);
                 });
-                parent.spawn_bundle(right_page);
+                parent.spawn_bundle(right_page).with_children(|parent| {
+                    for _ in 0..15 {
+                        parent.spawn_bundle(code_icon.clone());
+                    }
+                });
             });
         })
         .insert(TabMenuComponent);

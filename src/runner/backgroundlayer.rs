@@ -1,5 +1,12 @@
 use crate::runner::player::Player;
+use crate::states::GameStates;
 use bevy::prelude::*;
+
+const BACKGROUND_SPRITE_WIDTH: f32 = 816.;
+const BACKGROUND_SPRITE_HEIGHT: f32 = 480.;
+const PLAYER_SPRITE_WIDTH: f32 = 168.;
+// TODO: remove magic number
+const CAMERA_OFFSET_X: f32 = 1060.;
 
 #[derive(Debug, Component)]
 pub struct BackgroundLayer;
@@ -9,7 +16,7 @@ pub struct BackgroundLayerPlugin;
 impl Plugin for BackgroundLayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(spawn_initial_layers)
-            .add_system(update_layers);
+            .add_system_set(SystemSet::on_update(GameStates::Main).with_system(update_layers));
     }
 }
 
@@ -19,7 +26,12 @@ fn spawn_initial_layers(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let texture_handle = asset_server.load("cyberpunk-city.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(816.0, 480.0), 1, 1);
+    let texture_atlas = TextureAtlas::from_grid(
+        texture_handle,
+        Vec2::new(BACKGROUND_SPRITE_WIDTH, BACKGROUND_SPRITE_HEIGHT),
+        1,
+        1,
+    );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
     commands
@@ -36,10 +48,10 @@ fn spawn_initial_layers(
 
     commands
         .spawn_bundle(SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
+            texture_atlas: texture_atlas_handle.clone(),
             transform: Transform {
                 scale: Vec3::new(1.0, 1.5, 1.0),
-                translation: Vec3::new(-816.0, 0.0, 0.0),
+                translation: Vec3::new(-BACKGROUND_SPRITE_WIDTH, 0.0, 0.0),
                 ..Default::default()
             },
             ..Default::default()
@@ -51,7 +63,7 @@ fn spawn_initial_layers(
             texture_atlas: texture_atlas_handle.clone(),
             transform: Transform {
                 scale: Vec3::new(1.0, 1.5, 1.0),
-                translation: Vec3::new(816.0, 0.0, 0.0),
+                translation: Vec3::new(BACKGROUND_SPRITE_WIDTH, 0.0, 0.0),
                 ..Default::default()
             },
             ..Default::default()
@@ -68,28 +80,32 @@ fn update_layers(
 ) {
     if let Some(cam) = camera.iter().next() {
         for (entity, transform, _, _) in query.iter_mut() {
-            let left_bound = transform.translation.x + 816. + 168. * 2.;
-            let right_bound = transform.translation.x - 816. - 168. * 2.;
+            let right_bound =
+                transform.translation.x + BACKGROUND_SPRITE_WIDTH + PLAYER_SPRITE_WIDTH * 2.;
+            let left_bound =
+                transform.translation.x - BACKGROUND_SPRITE_WIDTH - PLAYER_SPRITE_WIDTH * 2.;
 
             let texture_handle = asset_server.load("cyberpunk-city.png");
-            let texture_atlas =
-                TextureAtlas::from_grid(texture_handle, Vec2::new(816.0, 480.0), 1, 1);
+            let texture_atlas = TextureAtlas::from_grid(
+                texture_handle,
+                Vec2::new(BACKGROUND_SPRITE_WIDTH, BACKGROUND_SPRITE_HEIGHT),
+                1,
+                1,
+            );
             let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
-            if cam.translation.x > left_bound {
-              let distance = cam.translation.x - transform.translation.x;
-                println!("distance {}: ", distance);
+            if cam.translation.x > right_bound {
                 spawn_layer(
                     &mut commands,
                     texture_atlas_handle.clone(),
-                    cam.translation.x + 1060.,
+                    cam.translation.x + CAMERA_OFFSET_X,
                 );
                 commands.entity(entity).despawn();
-            } else if cam.translation.x < right_bound {
+            } else if cam.translation.x < left_bound {
                 spawn_layer(
                     &mut commands,
                     texture_atlas_handle.clone(),
-                    cam.translation.x - 1060.,
+                    cam.translation.x - CAMERA_OFFSET_X,
                 );
                 commands.entity(entity).despawn();
             }

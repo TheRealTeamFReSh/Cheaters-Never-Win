@@ -13,6 +13,7 @@ pub enum PlatformKind {
 }
 
 /// Test spawn platform
+#[allow(dead_code)]
 pub fn spawn_test_platforms(
     mut commands: Commands,
     rapier_config: Res<RapierConfiguration>,

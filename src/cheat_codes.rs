@@ -25,13 +25,28 @@ pub enum CheatCodeActivationResult {
     Activated(CheatCodeKind),
     AlreadyActivated(CheatCodeKind),
 }
+impl CheatCodeActivationResult {
+    pub fn to_string(&self) -> String {
+        match self {
+            CheatCodeActivationResult::Activated(kind) => {
+                return format!("[{:?}] cheat code successfully activated", kind)
+            }
+            CheatCodeActivationResult::AlreadyActivated(kind) => {
+                return format!("[{:?}] already activated", kind)
+            }
+            CheatCodeActivationResult::NotFound => {
+                return "cheat code not recognized by the system".to_string()
+            }
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct CheatCode {
-    kind: CheatCodeKind,
-    rarity: CheatCodeRarity,
-    text: String,
-    dependencies: Vec<CheatCodeKind>,
+    pub kind: CheatCodeKind,
+    pub rarity: CheatCodeRarity,
+    pub text: String,
+    pub dependencies: Vec<CheatCodeKind>,
 }
 
 impl CheatCode {
@@ -51,7 +66,7 @@ impl CheatCode {
 }
 
 pub struct CheatCodeResource {
-    codes: HashMap<CheatCodeKind, CheatCode>,
+    pub codes: HashMap<CheatCodeKind, CheatCode>,
     activated: Vec<CheatCodeKind>,
 }
 

@@ -1,7 +1,6 @@
 use crate::states::GameStates;
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
-use std::f32::consts::PI;
 
 #[derive(Debug, Component)]
 pub struct Player {
@@ -102,8 +101,8 @@ fn move_character(
     mut query: Query<(&Player, &mut RigidBodyVelocityComponent)>,
 ) {
     for (player, mut rb_vel) in query.iter_mut() {
-        let up = keyboard_input.pressed(KeyCode::W);
-        let down = keyboard_input.pressed(KeyCode::S);
+        let _up = keyboard_input.pressed(KeyCode::W);
+        let _down = keyboard_input.pressed(KeyCode::S);
         let left = keyboard_input.pressed(KeyCode::A);
         let right = keyboard_input.pressed(KeyCode::D);
 

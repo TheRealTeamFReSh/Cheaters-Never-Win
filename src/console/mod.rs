@@ -134,10 +134,15 @@ fn open_console_handler(
             for (interactable, transform) in interactable_query.iter() {
                 match interactable.interactable_type {
                     InteractableType::Terminal => {
-                        let distance = player.translation.x - transform.translation.x;
+                        let distance_x = player.translation.x - transform.translation.x;
+                        let distance_y = player.translation.y - transform.translation.y;
                         let range = interactable.range;
 
-                        if distance <= range && distance >= -range {
+                        if distance_x <= range
+                            && distance_x >= -range
+                            && distance_y <= range
+                            && distance_y >= -range
+                        {
                             game_state.push(GameStates::ConsoleLoading).unwrap();
                             keyboard.reset(KeyCode::E);
                         }

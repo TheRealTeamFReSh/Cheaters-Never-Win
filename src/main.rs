@@ -37,6 +37,7 @@ fn main() {
         .add_plugin(enemies::EnemiesPlugin)
         .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
+        .add_plugin(stats::GameStatsPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(camera::add_camera)
         // TODO: remove

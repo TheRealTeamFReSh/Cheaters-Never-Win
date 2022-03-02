@@ -7,6 +7,7 @@ use crate::{
     camera::UICameraComponent,
     cheat_codes::{CheatCodeKind, CheatCodeResource},
     states::GameStates,
+    stats::GameStatsResource,
 };
 
 pub struct TabMenuPlugin;
@@ -105,6 +106,7 @@ fn build_ui(
     window: Res<Windows>,
     camera: Query<&Transform, With<UICameraComponent>>,
     cheat_codes_res: Res<CheatCodeResource>,
+    stats_res: Res<GameStatsResource>,
 ) {
     let current_window = window.get_primary().unwrap();
     let mut camera_pos = 0.0;
@@ -193,7 +195,14 @@ fn build_ui(
     let run_stats = TextBundle {
         text: Text {
             sections: vec![TextSection {
-                value: "Distance: 0m\n\nTime: 00:00s\n\nCodes activated: 0".to_string(),
+                value: format!(
+                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}s\n\nCodes activated: {}/{}",
+                    stats_res.score,
+                    stats_res.distance,
+                    format_time(stats_res.run_time),
+                    stats_res.cheats_activated,
+                    cheat_codes_res.codes.len()
+                ),
                 style: TextStyle {
                     font: assets.font.clone(),
                     color: Color::rgb_u8(74, 28, 33).into(),
@@ -240,4 +249,10 @@ fn build_ui(
             });
         })
         .insert(TabMenuComponent);
+}
+
+fn format_time(duration: f64) -> String {
+    let seconds = duration % 60.;
+    let minutes = duration / 60.;
+    format!("{:02}:{:02}", minutes, seconds)
 }

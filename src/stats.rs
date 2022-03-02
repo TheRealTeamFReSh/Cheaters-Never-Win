@@ -16,11 +16,11 @@ impl Plugin for GameStatsPlugin {
 }
 
 pub struct GameStatsResource {
-    distance: f32,
-    enemy_killed: usize,
-    cheats_activated: usize,
-    run_time: f64,
-    score: usize,
+    pub distance: f32,
+    pub enemy_killed: usize,
+    pub cheats_activated: usize,
+    pub run_time: f64,
+    pub score: usize,
 }
 
 impl GameStatsResource {
@@ -52,7 +52,9 @@ pub fn update_max_distance(
     mut stats_res: ResMut<GameStatsResource>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
-        stats_res.distance = stats_res.distance.max(player_transform.translation.x);
+        stats_res.distance = stats_res
+            .distance
+            .max(player_transform.translation.x / 100.);
     }
 }
 

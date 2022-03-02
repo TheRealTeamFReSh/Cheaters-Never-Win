@@ -3,6 +3,8 @@ use bevy::prelude::*;
 mod backgroundlayer;
 mod player;
 
+pub use self::player::Player;
+
 pub struct RunnerPlugin;
 
 impl Plugin for RunnerPlugin {

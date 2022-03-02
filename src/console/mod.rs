@@ -5,6 +5,8 @@ use self::{
     event::{PrintToConsoleEvent, SendCommandEvent},
     loading_screen::LoadingScreenPlugin,
 };
+use crate::interactables::{InteractableComponent, InteractableType};
+use crate::runner::Player;
 use crate::states::GameStates;
 
 mod commands;
@@ -123,10 +125,31 @@ fn close_console_handler(
 fn open_console_handler(
     mut keyboard: ResMut<Input<KeyCode>>,
     mut game_state: ResMut<State<GameStates>>,
+    player_query: Query<&Transform, With<Player>>,
+    interactable_query: Query<(&InteractableComponent, &Transform)>,
 ) {
     if keyboard.just_released(KeyCode::E) {
-        game_state.push(GameStates::ConsoleLoading).unwrap();
-        keyboard.reset(KeyCode::E);
+        // Only open the terminal when in range
+        if let Some(player) = player_query.iter().next() {
+            for (interactable, transform) in interactable_query.iter() {
+                match interactable.interactable_type {
+                    InteractableType::Terminal => {
+                        let distance_x = player.translation.x - transform.translation.x;
+                        let distance_y = player.translation.y - transform.translation.y;
+                        let range = interactable.range;
+
+                        if distance_x <= range
+                            && distance_x >= -range
+                            && distance_y <= range
+                            && distance_y >= -range
+                        {
+                            game_state.push(GameStates::ConsoleLoading).unwrap();
+                            keyboard.reset(KeyCode::E);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

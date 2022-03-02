@@ -12,8 +12,10 @@ mod physics;
 mod platforms;
 mod runner;
 mod states;
+mod stats;
 mod tab_menu;
 mod toast;
+
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {

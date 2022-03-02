@@ -340,5 +340,7 @@ pub fn generate_random_code(rarity: CheatCodeRarity) -> String {
         CheatCodeRarity::Legendary => 8,
     };
 
-    Alphanumeric.sample_string(&mut rand::thread_rng(), length)
+    Alphanumeric
+        .sample_string(&mut rand::thread_rng(), length)
+        .to_lowercase()
 }

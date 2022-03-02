@@ -196,8 +196,8 @@ fn build_ui(
         text: Text {
             sections: vec![TextSection {
                 value: format!(
-                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}s\n\nCodes activated: {}/{}",
-                    stats_res.score,
+                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}\n\nCodes activated: {}/{}",
+                    stats_res.get_score(),
                     stats_res.distance,
                     format_time(stats_res.run_time),
                     stats_res.cheats_activated,
@@ -252,7 +252,7 @@ fn build_ui(
 }
 
 fn format_time(duration: f64) -> String {
-    let seconds = duration % 60.;
-    let minutes = duration / 60.;
+    let seconds = duration as usize % 60;
+    let minutes = duration as usize / 60;
     format!("{:02}:{:02}", minutes, seconds)
 }

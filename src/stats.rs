@@ -18,9 +18,9 @@ impl Plugin for GameStatsPlugin {
 pub struct GameStatsResource {
     pub distance: f32,
     pub enemy_killed: usize,
+    pub enemy_score: usize,
     pub cheats_activated: usize,
     pub run_time: f64,
-    pub score: usize,
 }
 
 impl GameStatsResource {
@@ -28,10 +28,22 @@ impl GameStatsResource {
         Self {
             distance: 0.,
             enemy_killed: 0,
+            enemy_score: 0,
             cheats_activated: 0,
             run_time: 0.,
-            score: 0,
         }
+    }
+
+    pub fn get_score(&self) -> usize {
+        let distance_coef = 2.0;
+        let enemy_coef = 1.0;
+        let time_coef = 1.0;
+        let cheats_coef = 10.0;
+
+        (self.distance * distance_coef
+            + self.enemy_score as f32 * enemy_coef
+            + self.run_time as f32 * time_coef
+            + self.cheats_activated as f32 * cheats_coef) as usize
     }
 }
 
@@ -43,7 +55,7 @@ pub fn enemy_killed_handler(
 ) {
     for EnemyKilledEvent(score) in enemy_event_reader.iter() {
         stats_res.enemy_killed += 1;
-        stats_res.score += score;
+        stats_res.enemy_score += score;
     }
 }
 

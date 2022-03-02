@@ -142,7 +142,7 @@ impl CheatCodeResource {
         // iteration over all the existing codes
         for (_, code) in self.codes.iter() {
             // it we found a code
-            if code.text.eq(text) {
+            if code.text.eq(&text.to_lowercase()) {
                 if self.is_code_activated(&code.kind) {
                     return CheatCodeActivationResult::AlreadyActivated(code.kind);
                 }

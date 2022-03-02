@@ -90,6 +90,16 @@
 			terminals: [
 				(1314.0, -240.0),
 			],
+			chars: [
+				(
+					value: 's',
+					position: (160.0, -260.0),
+				),
+				(
+					value: 'w',
+					position: (200.0, -260.0),
+				),
+			],
 			next_chunk_offset: 2240.0,
 			chunk_offset: 80.0,
 		),
@@ -130,6 +140,7 @@
 				),
 			],
 			terminals: [],
+			chars: [],
 			next_chunk_offset: 576.0,
 			chunk_offset: 32.0,
 		),
@@ -170,6 +181,7 @@
 
 			],
 			terminals: [],
+			chars: [],
 			next_chunk_offset: 576.0,
 			chunk_offset: 80.0,
 		),
@@ -208,6 +220,7 @@
 
 			],
 			terminals: [],
+			chars: [],
 			next_chunk_offset: 576.0,
 			chunk_offset: 80.0,
 		),

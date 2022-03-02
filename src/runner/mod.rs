@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-
 mod backgroundlayer;
 mod player;
 
@@ -12,4 +11,8 @@ impl Plugin for RunnerPlugin {
         app.add_plugin(backgroundlayer::BackgroundLayerPlugin)
             .add_plugin(player::PlayerPlugin);
     }
+}
+
+pub struct CollectedChars {
+    pub values: Vec<char>,
 }

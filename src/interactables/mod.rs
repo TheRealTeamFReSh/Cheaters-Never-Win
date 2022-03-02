@@ -1,8 +1,10 @@
 use bevy::prelude::*;
+mod chars;
 mod terminal;
 
 pub enum InteractableType {
     Terminal,
+    CharText,
 }
 
 #[derive(Component)]
@@ -19,4 +21,5 @@ impl Plugin for InteractablesPlugin {
     }
 }
 
+pub use chars::{spawn_char, CharTextComponent};
 pub use terminal::spawn_terminal;

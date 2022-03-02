@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
-use crate::interactables::spawn_terminal;
+use crate::interactables::{spawn_char, spawn_terminal};
 
 use super::platform;
 use crate::{enemies, runner};
@@ -30,6 +30,13 @@ pub struct ChunksResource {
 }
 
 #[derive(Deserialize)]
+pub struct CharTextData {
+    // TODO: this value should be randomed
+    pub value: char,
+    pub position: Vec2,
+}
+
+#[derive(Deserialize)]
 pub struct Chunk {
     pub platforms: Vec<PlatformData>,
     pub enemies: Vec<EnemyData>,
@@ -37,6 +44,7 @@ pub struct Chunk {
     pub chunk_offset: f32,
     // ability dependency? optional?
     pub terminals: Vec<Vec2>,
+    pub chars: Vec<CharTextData>,
 }
 
 pub fn spawn_chunk(
@@ -69,6 +77,16 @@ pub fn spawn_chunk(
 
     for terminal_position in chunk.terminals.iter() {
         spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
+    }
+
+    for char_data in chunk.chars.iter() {
+        spawn_char(
+            commands,
+            asset_server,
+            texture_atlases,
+            char_data.value,
+            &char_data.position,
+        )
     }
 }
 

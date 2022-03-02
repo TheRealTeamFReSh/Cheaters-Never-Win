@@ -96,16 +96,114 @@
 		(
 			platforms: [
 				(
+					platform_kind: Platform3,
+					position: (0.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (224.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (288.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (352.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (464.0, -290.0),
+				),
+			],
+			enemies: [
+				(
+					enemy_kind: Slime,
+					position: (300.0, -150.0),
+				),
+			],
+			next_chunk_offset: 576.0,
+			chunk_offset: 32.0,
+		),
+		(
+			platforms: [
+				(
 					platform_kind: Platform1,
 					position: (0.0, -290.0),
 				),
+				(
+					platform_kind: Platform3,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (176.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (240.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (352.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (512.0, -290.0),
+				),
+				/*
+				(
+					platform_kind: Platform4,
+					position: (240.0, -210.0),
+				),
+				*/
 			],
 			enemies: [
 
 			],
-			next_chunk_offset: 0.0,
-			chunk_offset: 32.0,
+			next_chunk_offset: 576.0,
+			chunk_offset: 80.0,
 		),
 	],
-	jump_chunks: [],
+	jump_chunks: [
+		(
+			platforms: [
+				(
+					platform_kind: Platform1,
+					position: (0.0, -290.0),
+				),
+				(
+					platform_kind: Platform3,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (176.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (240.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (512.0, -290.0),
+				),
+				/*
+				(
+					platform_kind: Platform4,
+					position: (240.0, -210.0),
+				),
+				*/
+			],
+			enemies: [
+
+			],
+			next_chunk_offset: 576.0,
+			chunk_offset: 80.0,
+		),
+	],
 )

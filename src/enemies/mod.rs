@@ -90,6 +90,8 @@ fn spawn_slime(
         .insert(Name::new("Enemy-Slime"));
 }
 
+/// Test spawn platform
+#[allow(dead_code)]
 fn spawn_test_enemy(
     mut commands: Commands,
     rapier_config: Res<RapierConfiguration>,

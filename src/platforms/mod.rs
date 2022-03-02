@@ -12,8 +12,15 @@ impl Plugin for PlatformsPlugin {
             from_bytes::<chunk::ChunksResource>(include_bytes!("../../data/chunks.ron")).unwrap(),
         )
         .add_system_set(
-            SystemSet::on_enter(GameStates::Main)
-                .with_system(chunk::generate_prelude_chunk.after("setup_physics")),
+            SystemSet::on_enter(GameStates::Main).with_system(
+                chunk::generate_prelude_chunk
+                    .after("setup_physics")
+                    .label("generate_prelude_chunk"),
+            ),
+        )
+        .add_system_set(
+            SystemSet::on_update(GameStates::Main)
+                .with_system(chunk::generate_chunks.after("generate_prelude_chunk")),
         );
     }
 }

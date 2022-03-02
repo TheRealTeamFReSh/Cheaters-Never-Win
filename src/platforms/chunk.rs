@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
 use super::platform;
-use crate::enemies;
+use crate::{enemies, runner};
 
 #[derive(Deserialize)]
 pub struct PlatformData {
@@ -38,6 +38,7 @@ pub struct Chunk {
 
 pub fn spawn_chunk(
     chunk: &Chunk,
+    x_offset: f32,
     commands: &mut Commands,
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
@@ -45,7 +46,7 @@ pub fn spawn_chunk(
     for platform_data in chunk.platforms.iter() {
         platform::spawn_platform(
             &platform_data.platform_kind,
-            platform_data.position,
+            platform_data.position + Vec2::new(x_offset, 0.0),
             commands,
             rapier_config,
             asset_server,
@@ -55,7 +56,7 @@ pub fn spawn_chunk(
     for enemy_data in chunk.enemies.iter() {
         enemies::spawn_enemy(
             &enemy_data.enemy_kind,
-            enemy_data.position,
+            enemy_data.position + Vec2::new(x_offset, 0.0),
             commands,
             rapier_config,
             asset_server,
@@ -63,6 +64,8 @@ pub fn spawn_chunk(
     }
 }
 
+/// Test spawn platform
+#[allow(dead_code)]
 pub fn chunk_test_system(
     chunks_resource: Res<ChunksResource>,
     mut commands: Commands,
@@ -72,7 +75,7 @@ pub fn chunk_test_system(
     let chunk_to_spawn = chunks_resource.prelude_chunks.get(0);
 
     if let Some(chunk) = chunk_to_spawn {
-        spawn_chunk(chunk, &mut commands, &rapier_config, &asset_server);
+        spawn_chunk(chunk, 0.0, &mut commands, &rapier_config, &asset_server);
     }
 }
 
@@ -88,7 +91,57 @@ pub fn generate_prelude_chunk(
             .choose(&mut rand::thread_rng())
             .unwrap();
 
-        spawn_chunk(chunk_to_spawn, &mut commands, &rapier_config, &asset_server);
+        spawn_chunk(
+            chunk_to_spawn,
+            0.0,
+            &mut commands,
+            &rapier_config,
+            &asset_server,
+        );
         chunks_resource.furthest_x = chunk_to_spawn.next_chunk_offset;
+    }
+}
+
+pub fn generate_chunks(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    asset_server: Res<AssetServer>,
+    mut chunks_resource: ResMut<ChunksResource>,
+    player_query: Query<(&runner::Player, &RigidBodyPositionComponent)>,
+) {
+    assert!(chunks_resource.furthest_x >= 0.0);
+
+    for (_player, rb_pos) in player_query.iter() {
+        if chunks_resource.furthest_x - (rb_pos.position.translation.x * rapier_config.scale)
+            < 2000.0
+        {
+            info!("generating next chunks");
+            for _ in 0..=4 {
+                // roll for "cheat chunk" (chunk that requires an acquired cheat to get past)
+                let mut cheat_chunk_roll = rand::thread_rng();
+                let chunk_to_spawn = if cheat_chunk_roll.gen_range(0..=3) == 0 {
+                    // TODO: check player's activated cheats
+                    chunks_resource
+                        .jump_chunks
+                        .choose(&mut rand::thread_rng())
+                        .unwrap()
+                } else {
+                    chunks_resource
+                        .basic_chunks
+                        .choose(&mut rand::thread_rng())
+                        .unwrap()
+                };
+
+                spawn_chunk(
+                    chunk_to_spawn,
+                    chunks_resource.furthest_x + chunk_to_spawn.chunk_offset,
+                    &mut commands,
+                    &rapier_config,
+                    &asset_server,
+                );
+
+                chunks_resource.furthest_x += chunk_to_spawn.next_chunk_offset;
+            }
+        }
     }
 }

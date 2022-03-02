@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_ninepatch::NinePatchPlugin;
 
 use crate::states::GameStates;
 
@@ -11,6 +12,8 @@ pub struct PauseMenuEntity;
 pub struct PauseMenuPlugin;
 impl Plugin for PauseMenuPlugin {
     fn build(&self, app: &mut App) {
+        app.add_plugin(NinePatchPlugin::<()>::default());
+
         // on enter
         app.add_system_set(SystemSet::on_enter(GameStates::PauseMenu).with_system(ui::build_ui));
         // on update

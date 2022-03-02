@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
-use bevy_ninepatch::NinePatchPlugin;
 use bevy_rapier2d::prelude::*;
 use cheat_codes::CheatCodeResource;
 
@@ -28,7 +27,6 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(cheat_codes::CheatCodeResource::new())
-        .add_plugin(NinePatchPlugin::<()>::default())
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())

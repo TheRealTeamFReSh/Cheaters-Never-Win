@@ -101,9 +101,17 @@ pub fn build_ui(
         ..Default::default()
     };
 
-    let resume_btn = UIButton::new("Resume".to_string(), font_handle.clone(), || {});
-    let options_btn = UIButton::new("Options".to_string(), font_handle.clone(), || {});
-    let quit_btn = UIButton::new("Quit".to_string(), font_handle.clone(), || {});
+    let resume_btn = UIButton::new(
+        "Resume".to_string(),
+        font_handle.clone(),
+        "resume".to_string(),
+    );
+    let options_btn = UIButton::new(
+        "Options".to_string(),
+        font_handle.clone(),
+        "option".to_string(),
+    );
+    let quit_btn = UIButton::new("Quit".to_string(), font_handle.clone(), "quit".to_string());
 
     // ---------- UI TREE CONSTRUCTION ----------//
 

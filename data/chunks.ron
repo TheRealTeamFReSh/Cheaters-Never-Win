@@ -1,6 +1,7 @@
 (
-	chunks: {
-		JumpPrelude: (
+	furthest_x: 0.0,
+	prelude_chunks: [
+		(
 			platforms: [
 				(
 					platform_kind: Platform5,
@@ -86,8 +87,25 @@
 					position: (800.0, -150.0),
 				),
 			],
-			next_chunk_x: 2240.0,
+			next_chunk_offset: 2240.0,
 			chunk_offset: 80.0,
-		)
-	}
+		),
+		
+	],
+	basic_chunks: [
+		(
+			platforms: [
+				(
+					platform_kind: Platform1,
+					position: (0.0, -290.0),
+				),
+			],
+			enemies: [
+
+			],
+			next_chunk_offset: 0.0,
+			chunk_offset: 32.0,
+		),
+	],
+	jump_chunks: [],
 )

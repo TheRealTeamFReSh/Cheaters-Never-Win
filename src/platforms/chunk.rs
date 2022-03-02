@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::seq::SliceRandom;
 use serde::Deserialize;
-use std::collections::HashMap;
 
 use super::platform;
 use crate::enemies;
@@ -18,21 +18,20 @@ pub struct EnemyData {
     pub position: Vec2,
 }
 
-#[derive(Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
-pub enum ChunkName {
-    JumpPrelude,
-}
-
 #[derive(Deserialize)]
 pub struct ChunksResource {
-    pub chunks: HashMap<ChunkName, Chunk>,
+    pub prelude_chunks: Vec<Chunk>,
+    pub basic_chunks: Vec<Chunk>,
+    pub jump_chunks: Vec<Chunk>,
+    // add chunk vec for each cheat
+    pub furthest_x: f32,
 }
 
 #[derive(Deserialize)]
 pub struct Chunk {
     pub platforms: Vec<PlatformData>,
     pub enemies: Vec<EnemyData>,
-    pub next_chunk_x: f32,
+    pub next_chunk_offset: f32,
     pub chunk_offset: f32,
     // ability dependency? optional?
 }
@@ -70,9 +69,26 @@ pub fn chunk_test_system(
     rapier_config: Res<RapierConfiguration>,
     asset_server: Res<AssetServer>,
 ) {
-    let chunk_to_spawn = chunks_resource.chunks.get(&ChunkName::JumpPrelude);
+    let chunk_to_spawn = chunks_resource.prelude_chunks.get(0);
 
     if let Some(chunk) = chunk_to_spawn {
         spawn_chunk(chunk, &mut commands, &rapier_config, &asset_server);
+    }
+}
+
+pub fn generate_prelude_chunk(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    asset_server: Res<AssetServer>,
+    mut chunks_resource: ResMut<ChunksResource>,
+) {
+    if chunks_resource.furthest_x <= 0.0 {
+        let chunk_to_spawn = chunks_resource
+            .prelude_chunks
+            .choose(&mut rand::thread_rng())
+            .unwrap();
+
+        spawn_chunk(chunk_to_spawn, &mut commands, &rapier_config, &asset_server);
+        chunks_resource.furthest_x = chunk_to_spawn.next_chunk_offset;
     }
 }

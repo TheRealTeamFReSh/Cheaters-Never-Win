@@ -13,7 +13,7 @@ impl Plugin for PlatformsPlugin {
         )
         .add_system_set(
             SystemSet::on_enter(GameStates::Main)
-                .with_system(chunk::chunk_test_system.after("setup_physics")),
+                .with_system(chunk::generate_prelude_chunk.after("setup_physics")),
         );
     }
 }

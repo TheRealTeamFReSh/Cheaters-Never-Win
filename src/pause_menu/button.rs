@@ -7,6 +7,7 @@ const PRESSED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 #[derive(Component)]
 pub struct UIButtonComponent;
 
+#[allow(dead_code)]
 pub struct UIButton {
     text: String,
     font_handle: Handle<Font>,

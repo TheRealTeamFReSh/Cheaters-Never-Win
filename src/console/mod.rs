@@ -147,6 +147,7 @@ fn open_console_handler(
                             keyboard.reset(KeyCode::E);
                         }
                     }
+                    _ => {}
                 }
             }
         }

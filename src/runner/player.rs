@@ -2,11 +2,15 @@ use crate::{camera::TwoDCameraComponent, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
+use crate::interactables::{CharTextComponent, InteractableComponent, InteractableType};
+
 #[derive(Debug, Component)]
 pub struct Player {
     pub speed: f32,
     pub acceleration: f32,
     pub deceleration: f32,
+    // TODO: this should probably be stored in a resource
+    pub collected_chars: Vec<char>,
 }
 
 #[derive(Component)]
@@ -21,7 +25,8 @@ impl Plugin for PlayerPlugin {
                 SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)
                     .with_system(animate_sprite)
-                    .with_system(move_character),
+                    .with_system(move_character)
+                    .with_system(detect_char_interactable),
             );
     }
 }
@@ -40,6 +45,7 @@ fn spawn_character(
         speed: 5.0,
         acceleration: 0.2,
         deceleration: 0.2,
+        collected_chars: Vec::new(),
     };
 
     let collider_size_hx = 24.0 * 2.0 / rapier_config.scale / 2.0;
@@ -132,6 +138,40 @@ fn follow_player_camera(
     if let Some(player) = player.iter().next() {
         for mut transform in camera.iter_mut() {
             transform.translation.x = player.translation.x;
+        }
+    }
+}
+
+fn detect_char_interactable(
+    mut commands: Commands,
+    mut player_query: Query<(&mut Player, &Transform)>,
+    interactable_query: Query<(
+        Entity,
+        &InteractableComponent,
+        &Transform,
+        &CharTextComponent,
+    )>,
+) {
+    if let Some((mut player, player_transform)) = player_query.iter_mut().next() {
+        for (entity, interactable, transform, char_component) in interactable_query.iter() {
+            match interactable.interactable_type {
+                InteractableType::CharText => {
+                    let distance_x = player_transform.translation.x - transform.translation.x;
+                    let distance_y = player_transform.translation.y - transform.translation.y;
+                    let range = interactable.range;
+
+                    if distance_x <= range
+                        && distance_x >= -range
+                        && distance_y <= range
+                        && distance_y >= -range
+                    {
+                        println!("Picked up: {}", char_component.value);
+                        player.collected_chars.push(char_component.value);
+                        commands.entity(entity).despawn();
+                    }
+                }
+                _ => {}
+            }
         }
     }
 }

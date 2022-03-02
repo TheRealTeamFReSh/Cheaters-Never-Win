@@ -8,4 +8,5 @@ pub enum GameStates {
     PauseMenu,
     TabMenuLoading,
     TabMenu,
+    MainMenu,
 }

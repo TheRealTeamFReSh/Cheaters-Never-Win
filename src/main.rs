@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_ninepatch::NinePatchPlugin;
 use bevy_rapier2d::prelude::*;
 use cheat_codes::CheatCodeResource;
 
@@ -8,6 +9,7 @@ mod cheat_codes;
 mod console;
 mod enemies;
 mod interactables;
+mod main_menu;
 mod pause_menu;
 mod physics;
 mod platforms;
@@ -26,6 +28,8 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(cheat_codes::CheatCodeResource::new())
+        .add_plugin(NinePatchPlugin::<()>::default())
+        .add_plugin(main_menu::MainMenuPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(tab_menu::TabMenuPlugin)
@@ -38,7 +42,7 @@ fn main() {
         .add_plugin(enemies::EnemiesPlugin)
         .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
-        .add_state(states::GameStates::Main)
+        .add_state(states::GameStates::MainMenu)
         .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)

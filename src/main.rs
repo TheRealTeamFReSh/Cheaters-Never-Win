@@ -12,6 +12,7 @@ mod physics;
 mod platforms;
 mod runner;
 mod states;
+mod tab_menu;
 
 fn main() {
     App::new()
@@ -25,6 +26,7 @@ fn main() {
         .insert_resource(cheat_codes::CheatCodeResource::new())
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(tab_menu::TabMenuPlugin)
         .add_plugin(console::ConsolePlugin)
         .add_plugin(runner::RunnerPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
@@ -59,4 +61,8 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
 
     let result = cheat_codes_res.activate_code("jump");
     println!("Trying to activate code : {:?}", &result);
+
+    for (_, code) in cheat_codes_res.codes.iter() {
+        println!("Code: {:?}, text: {}", code.kind, code.text);
+    }
 }

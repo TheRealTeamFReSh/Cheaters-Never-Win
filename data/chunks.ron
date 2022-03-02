@@ -3,6 +3,26 @@
 		JumpPrelude: (
 			platforms: [
 				(
+					platform_kind: Platform5,
+					position: (-670.0, -240.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (-640.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (-480.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (-320.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (-160.0, -290.0),
+				),
+				(
 					platform_kind: Platform1,
 					position: (0.0, -290.0),
 				),
@@ -21,8 +41,53 @@
 				(
 					platform_kind: Platform1,
 					position: (640.0, -290.0),
-				)
-			]
+				),
+				(
+					platform_kind: Platform1,
+					position: (800.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (960.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (1120.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (1280.0, -290.0),
+				),
+				
+				(
+					platform_kind: Platform1,
+					position: (1680.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (1840.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (2000.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (2160.0, -290.0),
+				),
+			],
+			enemies: [
+				(
+					enemy_kind: Slime,
+					position: (400.0, -150.0),
+				),
+				(
+					enemy_kind: Slime,
+					position: (800.0, -150.0),
+				),
+			],
+			next_chunk_x: 2240.0,
+			chunk_offset: 80.0,
 		)
 	}
 )

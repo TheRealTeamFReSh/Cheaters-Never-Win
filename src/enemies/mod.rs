@@ -1,18 +1,19 @@
 use crate::{physics::jump, states::GameStates};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use serde::Deserialize;
 
 pub struct EnemiesPlugin;
 
 impl Plugin for EnemiesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_test_enemy.after("setup_physics"))
-            .add_system_set(
-                SystemSet::on_update(GameStates::Main).with_system(slime_enemy_behavior),
-            );
+        app.add_system_set(
+            SystemSet::on_update(GameStates::Main).with_system(slime_enemy_behavior),
+        );
     }
 }
 
+#[derive(Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum EnemyKind {
     Slime,
 }
@@ -27,8 +28,8 @@ pub struct SlimeEnemy {
     pub jump_torque_impulse: f32,
 }
 
-fn spawn_enemy(
-    enemy_kind: EnemyKind,
+pub fn spawn_enemy(
+    enemy_kind: &EnemyKind,
     position: Vec2,
     commands: &mut Commands,
     rapier_config: &RapierConfiguration,
@@ -82,7 +83,7 @@ fn spawn_slime(
         .insert(ColliderPositionSync::Discrete)
         .insert(Enemy)
         .insert(SlimeEnemy {
-            jump_timer: Timer::from_seconds(5.0, true),
+            jump_timer: Timer::from_seconds(3.0, true),
             jump_impulse: 1000.0,
             jump_torque_impulse: 800.0,
         })
@@ -95,7 +96,7 @@ fn spawn_test_enemy(
     asset_server: Res<AssetServer>,
 ) {
     spawn_enemy(
-        EnemyKind::Slime,
+        &EnemyKind::Slime,
         [75.0, -150.0].into(),
         &mut commands,
         &rapier_config,

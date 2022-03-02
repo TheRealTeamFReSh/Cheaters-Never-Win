@@ -4,10 +4,17 @@ use serde::Deserialize;
 use std::collections::HashMap;
 
 use super::platform;
+use crate::enemies;
 
 #[derive(Deserialize)]
 pub struct PlatformData {
     pub platform_kind: platform::PlatformKind,
+    pub position: Vec2,
+}
+
+#[derive(Deserialize)]
+pub struct EnemyData {
+    pub enemy_kind: enemies::EnemyKind,
     pub position: Vec2,
 }
 
@@ -24,6 +31,9 @@ pub struct ChunksResource {
 #[derive(Deserialize)]
 pub struct Chunk {
     pub platforms: Vec<PlatformData>,
+    pub enemies: Vec<EnemyData>,
+    pub next_chunk_x: f32,
+    pub chunk_offset: f32,
     // ability dependency? optional?
 }
 
@@ -37,6 +47,16 @@ pub fn spawn_chunk(
         platform::spawn_platform(
             &platform_data.platform_kind,
             platform_data.position,
+            commands,
+            rapier_config,
+            asset_server,
+        )
+    }
+
+    for enemy_data in chunk.enemies.iter() {
+        enemies::spawn_enemy(
+            &enemy_data.enemy_kind,
+            enemy_data.position,
             commands,
             rapier_config,
             asset_server,

@@ -22,6 +22,10 @@
 					platform_kind: Platform1,
 					position: (640.0, -290.0),
 				)
+			],
+
+			terminals: [
+				(640.0, -240.0),
 			]
 		)
 	}

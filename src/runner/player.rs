@@ -10,7 +10,7 @@ pub struct Player {
 }
 
 #[derive(Component)]
-struct AnimationTimer(Timer);
+pub struct PlayerAnimationTimer(Timer);
 
 pub struct PlayerPlugin;
 
@@ -72,16 +72,16 @@ fn spawn_character(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
-        .insert(AnimationTimer(Timer::from_seconds(0.1, true)))
+        .insert(PlayerAnimationTimer(Timer::from_seconds(0.1, true)))
         .insert(Name::new("Player"))
         .insert(player);
 }
 
-fn animate_sprite(
+pub fn animate_sprite(
     time: Res<Time>,
     texture_atlases: Res<Assets<TextureAtlas>>,
     mut query: Query<(
-        &mut AnimationTimer,
+        &mut PlayerAnimationTimer,
         &mut TextureAtlasSprite,
         &Handle<TextureAtlas>,
     )>,

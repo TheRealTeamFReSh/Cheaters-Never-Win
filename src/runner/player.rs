@@ -2,6 +2,7 @@ use crate::{camera::TwoDCameraComponent, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
+use super::CollectedChars;
 use crate::interactables::{CharTextComponent, InteractableComponent, InteractableType};
 
 #[derive(Debug, Component)]
@@ -9,8 +10,6 @@ pub struct Player {
     pub speed: f32,
     pub acceleration: f32,
     pub deceleration: f32,
-    // TODO: this should probably be stored in a resource
-    pub collected_chars: Vec<char>,
 }
 
 #[derive(Component)]
@@ -20,7 +19,8 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_character.after("setup_physics"))
+        app.insert_resource(CollectedChars { values: Vec::new() })
+            .add_startup_system(spawn_character.after("setup_physics"))
             .add_system_set(
                 SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)
@@ -45,7 +45,6 @@ fn spawn_character(
         speed: 5.0,
         acceleration: 0.2,
         deceleration: 0.2,
-        collected_chars: Vec::new(),
     };
 
     let collider_size_hx = 24.0 * 2.0 / rapier_config.scale / 2.0;
@@ -144,7 +143,8 @@ fn follow_player_camera(
 
 fn detect_char_interactable(
     mut commands: Commands,
-    mut player_query: Query<(&mut Player, &Transform)>,
+    mut collected_chars: ResMut<CollectedChars>,
+    player_query: Query<&Transform, With<Player>>,
     interactable_query: Query<(
         Entity,
         &InteractableComponent,
@@ -152,7 +152,7 @@ fn detect_char_interactable(
         &CharTextComponent,
     )>,
 ) {
-    if let Some((mut player, player_transform)) = player_query.iter_mut().next() {
+    if let Some(player_transform) = player_query.iter().next() {
         for (entity, interactable, transform, char_component) in interactable_query.iter() {
             match interactable.interactable_type {
                 InteractableType::CharText => {
@@ -166,7 +166,8 @@ fn detect_char_interactable(
                         && distance_y >= -range
                     {
                         println!("Picked up: {}", char_component.value);
-                        player.collected_chars.push(char_component.value);
+                        collected_chars.values.push(char_component.value);
+                        println!("Length of chars: {}", collected_chars.values.len());
                         commands.entity(entity).despawn();
                     }
                 }

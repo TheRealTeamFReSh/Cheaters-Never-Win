@@ -3,6 +3,8 @@ use bevy_rapier2d::prelude::*;
 use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
+use crate::interactables::spawn_terminal;
+
 use super::platform;
 use crate::{enemies, runner};
 
@@ -34,6 +36,7 @@ pub struct Chunk {
     pub next_chunk_offset: f32,
     pub chunk_offset: f32,
     // ability dependency? optional?
+    pub terminals: Vec<Vec2>,
 }
 
 pub fn spawn_chunk(
@@ -42,6 +45,7 @@ pub fn spawn_chunk(
     commands: &mut Commands,
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
+    texture_atlases: &mut Assets<TextureAtlas>,
 ) {
     for platform_data in chunk.platforms.iter() {
         platform::spawn_platform(
@@ -62,6 +66,10 @@ pub fn spawn_chunk(
             asset_server,
         )
     }
+
+    for terminal_position in chunk.terminals.iter() {
+        spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
+    }
 }
 
 /// Test spawn platform
@@ -71,11 +79,19 @@ pub fn chunk_test_system(
     mut commands: Commands,
     rapier_config: Res<RapierConfiguration>,
     asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     let chunk_to_spawn = chunks_resource.prelude_chunks.get(0);
 
     if let Some(chunk) = chunk_to_spawn {
-        spawn_chunk(chunk, 0.0, &mut commands, &rapier_config, &asset_server);
+        spawn_chunk(
+            chunk,
+            0.0,
+            &mut commands,
+            &rapier_config,
+            &asset_server,
+            &mut texture_atlases,
+        );
     }
 }
 
@@ -84,6 +100,7 @@ pub fn generate_prelude_chunk(
     rapier_config: Res<RapierConfiguration>,
     asset_server: Res<AssetServer>,
     mut chunks_resource: ResMut<ChunksResource>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     if chunks_resource.furthest_x <= 0.0 {
         let chunk_to_spawn = chunks_resource
@@ -97,6 +114,7 @@ pub fn generate_prelude_chunk(
             &mut commands,
             &rapier_config,
             &asset_server,
+            &mut texture_atlases,
         );
         chunks_resource.furthest_x = chunk_to_spawn.next_chunk_offset;
     }
@@ -108,6 +126,7 @@ pub fn generate_chunks(
     asset_server: Res<AssetServer>,
     mut chunks_resource: ResMut<ChunksResource>,
     player_query: Query<(&runner::Player, &RigidBodyPositionComponent)>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     assert!(chunks_resource.furthest_x >= 0.0);
 
@@ -138,6 +157,7 @@ pub fn generate_chunks(
                     &mut commands,
                     &rapier_config,
                     &asset_server,
+                    &mut texture_atlases,
                 );
 
                 chunks_resource.furthest_x += chunk_to_spawn.next_chunk_offset;

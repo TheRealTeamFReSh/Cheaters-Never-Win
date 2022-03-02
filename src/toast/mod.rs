@@ -1,12 +1,21 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_ninepatch::*;
 use bevy_tweening::{
-    lens::UiPositionLens, Animator, EaseFunction, Tween, TweeningPlugin, TweeningType,
+    lens::UiPositionLens, Animator, Delay, EaseFunction, Sequence, Tween, TweeningPlugin,
+    TweeningType,
 };
 
 use crate::cheat_codes::CheatCodeRarity;
 
-pub struct ShowToast(String);
+pub struct ShowToast {
+    value: String,
+    duration: Duration,
+}
+
+#[derive(Component)]
+pub struct ToastComponent;
 
 #[derive(Component)]
 pub struct ToastContentComponent;
@@ -21,6 +30,52 @@ impl Plugin for ToastPlugin {
         app.add_plugin(NinePatchPlugin::<()>::default());
         app.add_plugin(TweeningPlugin);
     }
+}
+
+fn get_toast_animation(duration: Duration) -> Sequence<Style> {
+    let close_animation = Tween::new(
+        EaseFunction::CubicInOut,
+        TweeningType::Once,
+        std::time::Duration::from_secs(1),
+        UiPositionLens {
+            start: Rect {
+                left: Val::Auto,
+                top: Val::Px(10.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+            end: Rect {
+                left: Val::Auto,
+                top: Val::Px(-100.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+        },
+    );
+
+    let delay = Delay::new(duration);
+
+    let open_animation = Tween::new(
+        EaseFunction::CubicInOut,
+        TweeningType::Once,
+        std::time::Duration::from_secs_f32(0.5),
+        UiPositionLens {
+            end: Rect {
+                left: Val::Auto,
+                top: Val::Px(10.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+            start: Rect {
+                left: Val::Auto,
+                top: Val::Px(-100.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+        },
+    );
+
+    open_animation.then(delay.then(close_animation))
 }
 
 fn build_ui(
@@ -60,7 +115,7 @@ fn build_ui(
             position_type: PositionType::Absolute,
             position: Rect {
                 right: Val::Px(10.),
-                top: Val::Px(10.),
+                top: Val::Px(-100.),
                 ..Default::default()
             },
             margin: Rect::all(Val::Auto),
@@ -77,46 +132,38 @@ fn build_ui(
         ..Default::default()
     };
 
-    let tween = Tween::new(
-        EaseFunction::CubicInOut,
-        TweeningType::PingPong,
-        std::time::Duration::from_secs(2),
-        UiPositionLens {
-            start: Rect {
-                left: Val::Auto,
-                top: Val::Px(10.),
-                right: Val::Px(10.),
-                bottom: Val::Auto,
-            },
-            end: Rect {
-                left: Val::Auto,
-                top: Val::Px(-200.),
-                right: Val::Px(10.),
-                bottom: Val::Auto,
-            },
-        },
-    );
-
     // Building UI tree
     commands
         .spawn_bundle(background)
-        .insert(Animator::new(tween));
+        .insert(ToastComponent)
+        .insert(Animator::<Style>::default());
 }
 
 fn update_content(
     mut show_toast_ev: EventReader<ShowToast>,
-    mut query: Query<&mut Text, With<ToastContentComponent>>,
+    mut text_query: Query<&mut Text, With<ToastContentComponent>>,
+    mut anim_query: Query<&mut Animator<Style>, With<ToastComponent>>,
 ) {
-    for ShowToast(content) in show_toast_ev.iter() {
-        let mut text = query.get_single_mut().unwrap();
-        text.sections[0].value = content.clone();
+    for toast_ev in show_toast_ev.iter() {
+        let mut text = text_query.get_single_mut().unwrap();
+        text.sections[0].value = toast_ev.value.clone();
+
+        let mut animator = anim_query.get_single_mut().unwrap();
+        animator.set_tweenable(get_toast_animation(toast_ev.duration));
+        animator.rewind();
     }
 }
 
 fn test(keyboard: Res<Input<KeyCode>>, mut toast_writer: EventWriter<ShowToast>) {
     if keyboard.just_pressed(KeyCode::T) && keyboard.pressed(KeyCode::LControl) {
-        toast_writer.send(ShowToast(crate::cheat_codes::generate_random_code(
+        let mut value = String::from("Random code: ");
+        value.push_str(&crate::cheat_codes::generate_random_code(
             CheatCodeRarity::Legendary,
-        )));
+        ));
+
+        toast_writer.send(ShowToast {
+            value,
+            duration: Duration::from_secs(2),
+        });
     }
 }

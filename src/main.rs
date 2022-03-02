@@ -1,13 +1,20 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_rapier2d::prelude::*;
 use cheat_codes::CheatCodeResource;
 
+mod camera;
 mod cheat_codes;
 mod console;
-mod states;
-
+mod enemies;
+mod interactables;
 mod pause_menu;
+mod physics;
+mod platforms;
 mod runner;
+mod states;
+mod tab_menu;
+mod toast;
 
 fn main() {
     App::new()
@@ -21,28 +28,21 @@ fn main() {
         .insert_resource(cheat_codes::CheatCodeResource::new())
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(tab_menu::TabMenuPlugin)
         .add_plugin(console::ConsolePlugin)
         .add_plugin(runner::RunnerPlugin)
         .add_plugin(pause_menu::PauseMenuPlugin)
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(physics::PhysicsPlugin)
+        .add_plugin(platforms::PlatformsPlugin)
+        .add_plugin(enemies::EnemiesPlugin)
+        .add_plugin(toast::ToastPlugin)
+        .add_plugin(interactables::InteractablesPlugin)
         .add_state(states::GameStates::Main)
-        .add_startup_system(setup)
+        .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)
-        // handling console state change
-        .add_system_set(SystemSet::on_update(states::GameStates::Main).with_system(open_console))
         .run();
-}
-
-fn open_console(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<states::GameStates>>) {
-    if keyboard.just_pressed(KeyCode::E) {
-        game_state.push(states::GameStates::Console).unwrap();
-    }
-}
-
-fn setup(mut commands: Commands) {
-    info!("Setting up cameras");
-    commands.spawn_bundle(UiCameraBundle::default());
-    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
 }
 
 fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
@@ -52,7 +52,11 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
     );
 
     let next_code = cheat_codes_res.get_next_code();
-    println!("Get next cheat code : {:?}", next_code);
+    let next_code_code = cheat_codes_res.codes.get(&next_code).unwrap();
+    println!(
+        "Get next cheat code: {:?} with code: {}",
+        next_code, next_code_code.text
+    );
 
     println!(
         "Is code activated: {}",
@@ -61,4 +65,8 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
 
     let result = cheat_codes_res.activate_code("jump");
     println!("Trying to activate code : {:?}", &result);
+
+    for (_, code) in cheat_codes_res.codes.iter() {
+        println!("Code: {:?}, text: {}", code.kind, code.text);
+    }
 }

@@ -1,0 +1,169 @@
+use std::time::Duration;
+
+use bevy::prelude::*;
+use bevy_ninepatch::*;
+use bevy_tweening::{
+    lens::UiPositionLens, Animator, Delay, EaseFunction, Sequence, Tween, TweeningPlugin,
+    TweeningType,
+};
+
+use crate::cheat_codes::CheatCodeRarity;
+
+pub struct ShowToast {
+    value: String,
+    duration: Duration,
+}
+
+#[derive(Component)]
+pub struct ToastComponent;
+
+#[derive(Component)]
+pub struct ToastContentComponent;
+
+pub struct ToastPlugin;
+impl Plugin for ToastPlugin {
+    fn build(&self, app: &mut App) {
+        // always here so no need for a systemset
+        app.add_startup_system(build_ui);
+        app.add_system(update_content).add_system(test);
+        app.add_event::<ShowToast>();
+        app.add_plugin(NinePatchPlugin::<()>::default());
+        app.add_plugin(TweeningPlugin);
+    }
+}
+
+fn get_toast_animation(duration: Duration) -> Sequence<Style> {
+    let close_animation = Tween::new(
+        EaseFunction::CubicInOut,
+        TweeningType::Once,
+        std::time::Duration::from_secs(1),
+        UiPositionLens {
+            start: Rect {
+                left: Val::Auto,
+                top: Val::Px(10.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+            end: Rect {
+                left: Val::Auto,
+                top: Val::Px(-100.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+        },
+    );
+
+    let delay = Delay::new(duration);
+
+    let open_animation = Tween::new(
+        EaseFunction::CubicInOut,
+        TweeningType::Once,
+        std::time::Duration::from_secs_f32(0.5),
+        UiPositionLens {
+            end: Rect {
+                left: Val::Auto,
+                top: Val::Px(10.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+            start: Rect {
+                left: Val::Auto,
+                top: Val::Px(-100.),
+                right: Val::Px(10.),
+                bottom: Val::Auto,
+            },
+        },
+    );
+
+    open_animation.then(delay.then(close_animation))
+}
+
+fn build_ui(
+    mut commands: Commands,
+    mut nine_patches: ResMut<Assets<NinePatchBuilder>>,
+    asset_server: Res<AssetServer>,
+) {
+    // Texture for the base image
+    let panel_texture_handle: Handle<Image> = asset_server.load("toast_background.png");
+
+    // Create a basic 9-Patch UI element with margins of 20 pixels
+    let nine_patch_handle = nine_patches.add(NinePatchBuilder::by_margins(20, 20, 20, 20));
+
+    // This entity will be placed in the center of the 9-Patch UI element
+    let content_entity = commands
+        .spawn_bundle(TextBundle {
+            text: Text::with_section(
+                "This is a toast. Hello, world!",
+                TextStyle {
+                    font: asset_server.load("fonts/VT323-Regular.ttf"),
+                    font_size: 24.,
+                    color: Color::rgb_u8(255, 255, 255).into(),
+                },
+                TextAlignment {
+                    horizontal: HorizontalAlign::Center,
+                    vertical: VerticalAlign::Center,
+                },
+            ),
+            ..Default::default()
+        })
+        .insert(ToastContentComponent)
+        .id();
+
+    // UI component
+    let background = NinePatchBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            position: Rect {
+                right: Val::Px(10.),
+                top: Val::Px(-100.),
+                ..Default::default()
+            },
+            margin: Rect::all(Val::Auto),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            size: Size::new(Val::Px(400.), Val::Px(60.)),
+            ..Default::default()
+        },
+        nine_patch_data: NinePatchData::with_single_content(
+            panel_texture_handle,
+            nine_patch_handle,
+            content_entity,
+        ),
+        ..Default::default()
+    };
+
+    // Building UI tree
+    commands
+        .spawn_bundle(background)
+        .insert(ToastComponent)
+        .insert(Animator::<Style>::default());
+}
+
+fn update_content(
+    mut show_toast_ev: EventReader<ShowToast>,
+    mut text_query: Query<&mut Text, With<ToastContentComponent>>,
+    mut anim_query: Query<&mut Animator<Style>, With<ToastComponent>>,
+) {
+    for toast_ev in show_toast_ev.iter() {
+        let mut text = text_query.get_single_mut().unwrap();
+        text.sections[0].value = toast_ev.value.clone();
+
+        let mut animator = anim_query.get_single_mut().unwrap();
+        animator.set_tweenable(get_toast_animation(toast_ev.duration));
+        animator.rewind();
+    }
+}
+
+fn test(keyboard: Res<Input<KeyCode>>, mut toast_writer: EventWriter<ShowToast>) {
+    if keyboard.just_pressed(KeyCode::T) && keyboard.pressed(KeyCode::LControl) {
+        let mut value = String::from("Random code: ");
+        value.push_str(&crate::cheat_codes::generate_random_code(
+            CheatCodeRarity::Legendary,
+        ));
+
+        toast_writer.send(ShowToast {
+            value,
+            duration: Duration::from_secs(2),
+        });
+    }
+}

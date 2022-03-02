@@ -1,11 +1,18 @@
-use crate::states::GameStates;
 use bevy::prelude::*;
+use bevy_loading::prelude::*;
 
-use self::event::{PrintToConsoleEvent, SendCommandEvent};
+use self::{
+    event::{PrintToConsoleEvent, SendCommandEvent},
+    loading_screen::LoadingScreenPlugin,
+};
+use crate::interactables::{InteractableComponent, InteractableType};
+use crate::runner::Player;
+use crate::states::GameStates;
 
 mod commands;
 mod event;
 mod input;
+mod loading_screen;
 mod ui;
 mod utils;
 
@@ -16,8 +23,26 @@ pub struct ConsolePlugin;
 
 impl Plugin for ConsolePlugin {
     fn build(&self, app: &mut App) {
+        // assets loading
+        app.add_plugin(LoadingScreenPlugin);
+        app.add_plugin(LoadingPlugin {
+            loading_state: GameStates::ConsoleLoading,
+            next_state: GameStates::Console,
+        });
+
+        app.add_system_set(
+            SystemSet::on_enter(GameStates::ConsoleLoading).with_system(load_overlay),
+        );
+
+        app.add_system_set(
+            SystemSet::on_update(GameStates::Main).with_system(open_console_handler),
+        );
+
+        // plugin building
         app.insert_resource(ConsoleData {
             input: String::from(""),
+            history_index: 0,
+            history: Vec::new(),
             lines: utils::welcome_lines(),
         })
         .add_event::<PrintToConsoleEvent>()
@@ -33,13 +58,15 @@ impl Plugin for ConsolePlugin {
         .add_system_set(
             SystemSet::on_update(GameStates::Console)
                 .with_system(update_input_area)
-                .with_system(update_lines_area),
+                .with_system(update_lines_area)
+                .with_system(event::add_message_events_to_console)
+                .label("update_ui"),
         )
         .add_system_set(
             SystemSet::on_update(GameStates::Console)
                 .with_system(input::handle_input_keys)
                 .with_system(commands::command_handler)
-                .with_system(event::add_message_events_to_console),
+                .after("update_ui"),
         )
         // on exit
         .add_system_set(
@@ -48,8 +75,29 @@ impl Plugin for ConsolePlugin {
     }
 }
 
+pub struct ConsoleAssets {
+    overlay: Handle<Image>,
+    crt_font: Handle<Font>,
+}
+
+fn load_overlay(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut loading: ResMut<AssetsLoading>,
+) {
+    let overlay = asset_server.load("crt.png");
+    let crt_font = asset_server.load("fonts/VT323-Regular.ttf");
+
+    loading.add(&overlay);
+    loading.add(&crt_font);
+
+    commands.insert_resource(ConsoleAssets { overlay, crt_font })
+}
+
 pub struct ConsoleData {
     input: String,
+    history_index: usize,
+    history: Vec<String>,
     lines: Vec<String>,
 }
 
@@ -64,22 +112,58 @@ fn destroy_console_state_entities(
     info!("[ConsolePlugin] Exiting state");
 }
 
-fn close_console_handler(keyboard: Res<Input<KeyCode>>, mut game_state: ResMut<State<GameStates>>) {
+fn close_console_handler(
+    mut keyboard: ResMut<Input<KeyCode>>,
+    mut game_state: ResMut<State<GameStates>>,
+) {
     if keyboard.just_pressed(KeyCode::Escape) {
         game_state.pop().unwrap();
+        keyboard.reset(KeyCode::Escape);
+    }
+}
+
+fn open_console_handler(
+    mut keyboard: ResMut<Input<KeyCode>>,
+    mut game_state: ResMut<State<GameStates>>,
+    player_query: Query<&Transform, With<Player>>,
+    interactable_query: Query<(&InteractableComponent, &Transform)>,
+) {
+    if keyboard.just_released(KeyCode::E) {
+        // Only open the terminal when in range
+        if let Some(player) = player_query.iter().next() {
+            for (interactable, transform) in interactable_query.iter() {
+                match interactable.interactable_type {
+                    InteractableType::Terminal => {
+                        let distance_x = player.translation.x - transform.translation.x;
+                        let distance_y = player.translation.y - transform.translation.y;
+                        let range = interactable.range;
+
+                        if distance_x <= range
+                            && distance_x >= -range
+                            && distance_y <= range
+                            && distance_y >= -range
+                        {
+                            game_state.push(GameStates::ConsoleLoading).unwrap();
+                            keyboard.reset(KeyCode::E);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
     }
 }
 
 pub fn update_lines_area(
     data: Res<ConsoleData>,
-    asset_server: Res<AssetServer>,
+    console_assets: Res<ConsoleAssets>,
     mut lines_area_query: Query<&mut Text, With<ui::LinesArea>>,
 ) {
     let sections_text = data.lines.join("\n");
     let sections = vec![TextSection {
         value: sections_text,
         style: TextStyle {
-            font: asset_server.load("fonts/VT323-Regular.ttf"),
+            font: console_assets.crt_font.clone(),
             font_size: 16.,
             color: Color::rgba_u8(76, 207, 76, 255),
         },
@@ -92,7 +176,7 @@ pub fn update_lines_area(
 pub fn update_input_area(
     mut command_input_query: Query<&mut Text, With<ui::CommandInput>>,
     mut state: ResMut<ConsoleData>,
-    asset_server: Res<AssetServer>,
+    console_assets: Res<ConsoleAssets>,
     time: Res<Time>,
 ) {
     let mut text = command_input_query.single_mut();
@@ -113,7 +197,7 @@ pub fn update_input_area(
     text.sections.push(TextSection {
         value: to_show,
         style: TextStyle {
-            font: asset_server.load("fonts/VT323-Regular.ttf"),
+            font: console_assets.crt_font.clone(),
             font_size: 16.,
             color: Color::rgba_u8(102, 255, 102, 255),
         },

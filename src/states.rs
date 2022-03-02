@@ -7,4 +7,5 @@ pub enum GameStates {
     Console,
     TabMenuLoading,
     TabMenu,
+    GameOver,
 }

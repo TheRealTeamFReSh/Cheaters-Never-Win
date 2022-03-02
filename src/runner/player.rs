@@ -1,4 +1,4 @@
-use crate::{camera::TwoDCameraComponent, states::GameStates};
+use crate::{camera::TwoDCameraComponent, physics, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
@@ -10,7 +10,7 @@ pub struct Player {
 }
 
 #[derive(Component)]
-struct AnimationTimer(Timer);
+pub struct PlayerAnimationTimer(Timer);
 
 pub struct PlayerPlugin;
 
@@ -37,8 +37,8 @@ fn spawn_character(
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(24.0, 24.0), 7, 1);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
-        speed: 5.0,
-        acceleration: 0.2,
+        speed: 8.0,
+        acceleration: 0.09,
         deceleration: 0.2,
     };
 
@@ -72,16 +72,16 @@ fn spawn_character(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
-        .insert(AnimationTimer(Timer::from_seconds(0.1, true)))
+        .insert(PlayerAnimationTimer(Timer::from_seconds(0.1, true)))
         .insert(Name::new("Player"))
         .insert(player);
 }
 
-fn animate_sprite(
+pub fn animate_sprite(
     time: Res<Time>,
     texture_atlases: Res<Assets<TextureAtlas>>,
     mut query: Query<(
-        &mut AnimationTimer,
+        &mut PlayerAnimationTimer,
         &mut TextureAtlasSprite,
         &Handle<TextureAtlas>,
     )>,
@@ -98,13 +98,18 @@ fn animate_sprite(
 fn move_character(
     keyboard_input: Res<Input<KeyCode>>,
     rapier_config: Res<RapierConfiguration>,
-    mut query: Query<(&Player, &mut RigidBodyVelocityComponent)>,
+    mut query: Query<(
+        &Player,
+        &mut RigidBodyVelocityComponent,
+        &RigidBodyMassPropsComponent,
+    )>,
 ) {
-    for (player, mut rb_vel) in query.iter_mut() {
+    for (player, mut rb_vel, rb_mprops) in query.iter_mut() {
         let _up = keyboard_input.pressed(KeyCode::W);
         let _down = keyboard_input.pressed(KeyCode::S);
         let left = keyboard_input.pressed(KeyCode::A);
         let right = keyboard_input.pressed(KeyCode::D);
+        let jump = keyboard_input.just_released(KeyCode::Space);
 
         let x_axis = -(left as i8) + right as i8;
 
@@ -121,6 +126,10 @@ fn move_character(
                 * rapier_config.scale;
         } else {
             rb_vel.linvel.x = 0.0;
+        }
+
+        if jump {
+            physics::jump(700.0, &mut rb_vel, rb_mprops)
         }
     }
 }

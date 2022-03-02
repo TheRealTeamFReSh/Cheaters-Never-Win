@@ -2,7 +2,7 @@ use bevy::prelude::*;
 mod backgroundlayer;
 mod player;
 
-pub use player::Player;
+pub use self::player::Player;
 
 pub struct RunnerPlugin;
 

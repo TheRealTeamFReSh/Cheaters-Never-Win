@@ -13,7 +13,7 @@ mod platforms;
 mod runner;
 mod states;
 mod tab_menu;
-
+mod toast;
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
@@ -33,6 +33,7 @@ fn main() {
         .add_plugin(physics::PhysicsPlugin)
         .add_plugin(platforms::PlatformsPlugin)
         .add_plugin(enemies::EnemiesPlugin)
+        .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
         .add_state(states::GameStates::Main)
         .add_startup_system(camera::add_camera)

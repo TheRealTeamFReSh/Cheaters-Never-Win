@@ -39,8 +39,9 @@ pub fn spawn_terminal(
         .insert(TerminalAnimationTimer(Timer::from_seconds(0.1, true)))
         .insert(InteractableComponent {
             interactable_type,
-            range: 45.0,
-        });
+            range: 65.0,
+        })
+        .insert(Name::new("Terminal"));
 }
 
 pub fn animate_sprite(

@@ -1,7 +1,6 @@
 use crate::{camera::TwoDCameraComponent, physics, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
-use std::collections::HashMap;
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};

@@ -92,12 +92,13 @@
 			],
 			chars: [
 				(
-					value: 's',
-					position: (160.0, -260.0),
-				),
-				(
-					value: 'w',
-					position: (200.0, -260.0),
+					cheat_kind: Jump,
+					positions: (
+						(160.0, -260.0),
+						(280.0, -260.0),
+						(600.0, -260.0),
+						(680.0, -260.0),
+					),
 				),
 			],
 			next_chunk_offset: 2240.0,
@@ -177,9 +178,7 @@
 				),
 				*/
 			],
-			enemies: [
-
-			],
+			enemies: [],
 			terminals: [],
 			chars: [],
 			next_chunk_offset: 576.0,

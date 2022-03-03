@@ -6,7 +6,12 @@ use serde::Deserialize;
 use crate::interactables::{spawn_char, spawn_terminal};
 
 use super::platform;
+<<<<<<< Updated upstream
 use crate::{enemies, interactables, runner};
+=======
+use crate::cheat_codes::{shuffle_code_text, CheatCodeResource, CheatCodeKind};
+use crate::{enemies, runner};
+>>>>>>> Stashed changes
 
 #[derive(Deserialize)]
 pub struct PlatformData {
@@ -18,6 +23,12 @@ pub struct PlatformData {
 pub struct EnemyData {
     pub enemy_kind: enemies::EnemyKind,
     pub position: Vec2,
+}
+
+#[derive(Deserialize)]
+pub struct CharData {
+    pub cheat_kind: CheatCodeKind,
+    pub positions: Vec<Vec2>,
 }
 
 #[derive(Deserialize)]
@@ -44,7 +55,11 @@ pub struct Chunk {
     pub chunk_offset: f32,
     // ability dependency? optional?
     pub terminals: Vec<Vec2>,
+<<<<<<< Updated upstream
     pub chars: Vec<CharTextData>,
+=======
+    pub chars: Vec<CharData>,
+>>>>>>> Stashed changes
 }
 
 pub fn spawn_chunk(
@@ -79,14 +94,18 @@ pub fn spawn_chunk(
         spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
     }
 
-    for char_data in chunk.chars.iter() {
-        spawn_char(
-            commands,
-            asset_server,
-            texture_atlases,
-            char_data.value,
-            &char_data.position,
-        )
+    let code_kind = cheat_codes.get_next_code();
+    println!("code kind: {:?}", code_kind);
+
+    for ch_data in &chunk.chars {
+        let code = cheat_codes.codes.get(&ch_data.cheat_kind).unwrap();
+        let shuffled_text = shuffle_code_text(&code.text, vec![2, 3, 1, 0]);
+
+        for n in 0..ch_data.positions.len() {
+            let ch_position = &ch_data.positions[n];
+            let ch = shuffled_text.chars().nth(n).unwrap();
+            spawn_char(commands, asset_server, texture_atlases, ch, &ch_position)
+        }
     }
 }
 

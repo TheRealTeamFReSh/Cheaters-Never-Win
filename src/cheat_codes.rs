@@ -1,8 +1,10 @@
 use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::SliceRandom;
 use std::collections::HashMap;
+use serde::Deserialize;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Deserialize)]
 pub enum CheatCodeKind {
     // Mandatory
     Jump,

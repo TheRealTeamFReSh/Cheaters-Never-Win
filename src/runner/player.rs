@@ -177,7 +177,6 @@ fn detect_char_interactable(
                         && distance_y <= range
                         && distance_y >= -range
                     {
-                        println!("Picked up: {}", char_component.value);
                         collected_chars.values.push(char_component.value);
                         println!("Length of chars: {}", collected_chars.values.len());
                         commands.entity(entity).despawn();

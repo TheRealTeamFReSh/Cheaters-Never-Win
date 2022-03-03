@@ -14,7 +14,7 @@ impl Plugin for PhysicsPlugin {
 }
 
 fn setup_physics(mut rapier_config: ResMut<RapierConfiguration>) {
-    rapier_config.gravity = [0.0, -55.0].into();
+    rapier_config.gravity = [0.0, -140.0].into();
     rapier_config.scale = 10.0;
 }
 

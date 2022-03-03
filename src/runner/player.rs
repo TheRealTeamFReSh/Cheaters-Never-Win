@@ -47,8 +47,8 @@ fn spawn_character(
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
-        acceleration: 0.09,
-        deceleration: 0.2,
+        acceleration: 0.12,
+        deceleration: 0.1,
     };
 
     let collider_size_hx = 30.0 / rapier_config.scale / 2.0;
@@ -134,7 +134,7 @@ fn move_character(
                 rb_vel.linvel.x =
                     (rb_vel.linvel.x / rb_vel.linvel.x.abs()) * player.speed * rapier_config.scale;
             }
-        } else if rb_vel.linvel.x.abs() > 0.01 {
+        } else if rb_vel.linvel.x.abs() > 0.4 {
             // decelerate
             rb_vel.linvel.x -= player.deceleration
                 * (rb_vel.linvel.x / rb_vel.linvel.x.abs())
@@ -144,7 +144,7 @@ fn move_character(
         }
 
         if jump {
-            physics::jump(700.0, &mut rb_vel, rb_mprops)
+            physics::jump(1200.0, &mut rb_vel, rb_mprops)
         }
     }
 }

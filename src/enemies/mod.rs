@@ -84,7 +84,7 @@ fn spawn_slime(
         .insert(Enemy)
         .insert(SlimeEnemy {
             jump_timer: Timer::from_seconds(3.0, true),
-            jump_impulse: 1000.0,
+            jump_impulse: 1300.0,
             jump_torque_impulse: 800.0,
         })
         .insert(Name::new("Enemy-Slime"));

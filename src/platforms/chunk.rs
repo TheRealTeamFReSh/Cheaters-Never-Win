@@ -6,6 +6,7 @@ use serde::Deserialize;
 use crate::interactables::{spawn_char, spawn_terminal};
 
 use super::platform;
+use crate::cheat_codes::{shuffle_code_text, CheatCodeResource};
 use crate::{enemies, interactables, runner};
 
 #[derive(Deserialize)]
@@ -30,13 +31,6 @@ pub struct ChunksResource {
 }
 
 #[derive(Deserialize)]
-pub struct CharTextData {
-    // TODO: this value should be randomed
-    pub value: char,
-    pub position: Vec2,
-}
-
-#[derive(Deserialize)]
 pub struct Chunk {
     pub platforms: Vec<PlatformData>,
     pub enemies: Vec<EnemyData>,
@@ -44,7 +38,7 @@ pub struct Chunk {
     pub chunk_offset: f32,
     // ability dependency? optional?
     pub terminals: Vec<Vec2>,
-    pub chars: Vec<CharTextData>,
+    pub chars: Vec<Vec2>,
 }
 
 pub fn spawn_chunk(
@@ -54,6 +48,7 @@ pub fn spawn_chunk(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
     texture_atlases: &mut Assets<TextureAtlas>,
+    cheat_codes: &CheatCodeResource,
 ) {
     for platform_data in chunk.platforms.iter() {
         platform::spawn_platform(
@@ -79,14 +74,13 @@ pub fn spawn_chunk(
         spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
     }
 
-    for char_data in chunk.chars.iter() {
-        spawn_char(
-            commands,
-            asset_server,
-            texture_atlases,
-            char_data.value,
-            &char_data.position,
-        )
+    let code_kind = cheat_codes.get_next_code();
+    let code = cheat_codes.codes.get(&code_kind).unwrap();
+    let shuffled_text = shuffle_code_text(&code.text, vec![2, 3, 1, 0]);
+    for n in 0..chunk.chars.len() {
+        let ch_position = &chunk.chars[n];
+        let ch = shuffled_text.chars().nth(n).unwrap();
+        spawn_char(commands, asset_server, texture_atlases, ch, &ch_position)
     }
 }
 
@@ -98,6 +92,7 @@ pub fn chunk_test_system(
     rapier_config: Res<RapierConfiguration>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     let chunk_to_spawn = chunks_resource.prelude_chunks.get(0);
 
@@ -109,6 +104,7 @@ pub fn chunk_test_system(
             &rapier_config,
             &asset_server,
             &mut texture_atlases,
+            &cheat_codes,
         );
     }
 }
@@ -119,6 +115,7 @@ pub fn generate_prelude_chunk(
     asset_server: Res<AssetServer>,
     mut chunks_resource: ResMut<ChunksResource>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     if chunks_resource.furthest_x <= 0.0 {
         let chunk_to_spawn = chunks_resource
@@ -133,6 +130,7 @@ pub fn generate_prelude_chunk(
             &rapier_config,
             &asset_server,
             &mut texture_atlases,
+            &cheat_codes,
         );
         chunks_resource.furthest_x = chunk_to_spawn.next_chunk_offset;
     }
@@ -145,6 +143,7 @@ pub fn generate_chunks(
     mut chunks_resource: ResMut<ChunksResource>,
     player_query: Query<(&runner::Player, &RigidBodyPositionComponent)>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     assert!(chunks_resource.furthest_x >= 0.0);
 
@@ -176,6 +175,7 @@ pub fn generate_chunks(
                     &rapier_config,
                     &asset_server,
                     &mut texture_atlases,
+                    &cheat_codes,
                 );
 
                 chunks_resource.furthest_x += chunk_to_spawn.next_chunk_offset;

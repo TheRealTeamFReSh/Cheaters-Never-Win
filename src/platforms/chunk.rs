@@ -82,7 +82,6 @@ pub fn spawn_chunk(
 
     for ch_data in &chunk.chars {
         let code = cheat_codes.codes.get(&ch_data.cheat_kind).unwrap();
-        let mut shuffled_text = "";
 
         let shuffled_text = match code.rarity {
             CheatCodeRarity::Mandatory => shuffle_code_text(&code.text, vec![2, 3, 1, 0]),

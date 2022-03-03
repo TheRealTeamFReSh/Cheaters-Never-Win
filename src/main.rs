@@ -14,6 +14,7 @@ mod physics;
 mod platforms;
 mod runner;
 mod states;
+mod stats;
 mod tab_menu;
 mod toast;
 
@@ -41,6 +42,7 @@ fn main() {
         .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
         .add_state(states::GameStates::MainMenu)
+        .add_plugin(stats::GameStatsPlugin)
         .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)

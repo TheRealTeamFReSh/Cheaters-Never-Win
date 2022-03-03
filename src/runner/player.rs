@@ -185,19 +185,13 @@ pub struct AnimationData {
 pub fn animate_sprite(
     time: Res<Time>,
     player_animation_resource: Res<PlayerAnimationResource>,
-    texture_atlases: Res<Assets<TextureAtlas>>,
     player_query: Query<&Player>,
-    mut query: Query<(
-        &mut PlayerAnimationTimer,
-        &mut TextureAtlasSprite,
-        &Handle<TextureAtlas>,
-    )>,
+    mut query: Query<(&mut PlayerAnimationTimer, &mut TextureAtlasSprite)>,
 ) {
     for player in player_query.iter() {
-        for (mut timer, mut sprite, texture_atlas_handle) in query.iter_mut() {
+        for (mut timer, mut sprite) in query.iter_mut() {
             timer.0.tick(time.delta());
             if timer.0.just_finished() {
-                let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
                 // is the player jumping
                 if player.feet_touching_platforms.platforms.is_empty() {
                     // player is jumping

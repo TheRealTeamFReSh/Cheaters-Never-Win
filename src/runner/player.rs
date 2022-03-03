@@ -33,13 +33,21 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CollectedChars { values: Vec::new() })
             .insert_resource(PlayerAnimationResource {
-                run: AnimationData {
+                run_right: AnimationData {
                     length: 8,
                     offset: 0,
                 },
                 jump: AnimationData {
                     length: 4,
                     offset: 8,
+                },
+                idle: AnimationData {
+                    length: 4,
+                    offset: 16,
+                },
+                run_left: AnimationData {
+                    length: 8,
+                    offset: 24,
                 },
             })
             .add_system_set(
@@ -73,7 +81,7 @@ fn spawn_character(
     rapier_config: Res<RapierConfiguration>,
 ) {
     let texture_handle = asset_server.load("player.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 2);
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 4);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
@@ -217,8 +225,10 @@ pub fn player_feet(
 }
 
 pub struct PlayerAnimationResource {
-    pub run: AnimationData,
+    pub run_right: AnimationData,
+    pub run_left: AnimationData,
     pub jump: AnimationData,
+    pub idle: AnimationData,
 }
 
 pub struct AnimationData {
@@ -229,15 +239,14 @@ pub struct AnimationData {
 pub fn animate_sprite(
     time: Res<Time>,
     player_animation_resource: Res<PlayerAnimationResource>,
-    player_query: Query<&Player>,
+    player_query: Query<(&Player, &RigidBodyVelocityComponent)>,
     mut query: Query<(&mut PlayerAnimationTimer, &mut TextureAtlasSprite)>,
 ) {
-    for player in player_query.iter() {
+    for (player, rb_vel) in player_query.iter() {
         for (mut timer, mut sprite) in query.iter_mut() {
             timer.0.tick(time.delta());
             if timer.0.just_finished() {
                 // is the player jumping
-                info!("{:?}", player.feet_touching_platforms.platforms);
                 if player.feet_touching_platforms.platforms.is_empty() {
                     // player is jumping
                     if sprite.index < player_animation_resource.jump.offset
@@ -254,11 +263,40 @@ pub fn animate_sprite(
                         sprite.index += 1;
                     }
                 } else {
-                    // player is running
-                    if sprite.index >= player_animation_resource.run.length {
-                        sprite.index = 0;
+                    if rb_vel.linvel.x > 0.0 {
+                        // player is running right
+                        if sprite.index >= player_animation_resource.run_right.length {
+                            sprite.index = 0;
+                        } else {
+                            sprite.index =
+                                (sprite.index + 1) % player_animation_resource.run_right.length;
+                        }
+                    } else if rb_vel.linvel.x < 0.0 {
+                        //player is running left
+                        if sprite.index < player_animation_resource.run_left.offset
+                            || sprite.index
+                                >= (player_animation_resource.run_left.length
+                                    + player_animation_resource.run_left.offset)
+                        {
+                            sprite.index = player_animation_resource.run_left.offset;
+                        } else {
+                            sprite.index = ((sprite.index + 1)
+                                % player_animation_resource.run_left.length)
+                                + player_animation_resource.run_left.offset;
+                        }
                     } else {
-                        sprite.index = (sprite.index + 1) % player_animation_resource.run.length;
+                        //player is idling
+                        if sprite.index < player_animation_resource.idle.offset
+                            || sprite.index
+                                >= (player_animation_resource.idle.length
+                                    + player_animation_resource.idle.offset)
+                        {
+                            sprite.index = player_animation_resource.idle.offset;
+                        } else {
+                            sprite.index = ((sprite.index + 1)
+                                % player_animation_resource.idle.length)
+                                + player_animation_resource.idle.offset;
+                        }
                     }
                 }
             }

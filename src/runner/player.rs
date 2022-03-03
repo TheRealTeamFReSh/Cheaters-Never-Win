@@ -51,20 +51,11 @@ fn spawn_character(
         deceleration: 0.2,
     };
 
-    let collider_size_hx = 24.0 / rapier_config.scale / 2.0;
-    let collider_size_hy = 50.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 30.0 / rapier_config.scale / 2.0;
+    let collider_size_hy = 70.0 / rapier_config.scale / 2.0;
 
     commands
-        .spawn_bundle(SpriteSheetBundle {
-            texture_atlas: texture_atlas_handle,
-            transform: Transform {
-                //scale: Vec3::new(2.0, 2.0, 1.0),
-                translation: Vec3::new(0.0, 0.0, 100.0),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .insert_bundle(RigidBodyBundle {
+        .spawn_bundle(RigidBodyBundle {
             body_type: RigidBodyType::Dynamic.into(),
             mass_properties: RigidBodyMassPropsFlags::ROTATION_LOCKED.into(),
             position: Vec2::new(0.0, -200.0 / rapier_config.scale).into(),
@@ -81,9 +72,21 @@ fn spawn_character(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
-        .insert(PlayerAnimationTimer(Timer::from_seconds(0.1, true)))
         .insert(Name::new("Player"))
-        .insert(player);
+        .insert(player)
+        .with_children(|parent| {
+            parent
+                .spawn_bundle(SpriteSheetBundle {
+                    texture_atlas: texture_atlas_handle,
+                    transform: Transform {
+                        scale: Vec3::new(1.5, 1.5, 1.0),
+                        translation: Vec3::new(0.0, 12.0, 100.0),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                })
+                .insert(PlayerAnimationTimer(Timer::from_seconds(0.1, true)));
+        });
 }
 
 pub fn animate_sprite(

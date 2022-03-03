@@ -3,6 +3,7 @@ use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
 use super::CollectedChars;
+use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
 use crate::interactables::{CharTextComponent, InteractableComponent, InteractableType};
 
 #[derive(Debug, Component)]
@@ -108,13 +109,16 @@ fn move_character(
         &mut RigidBodyVelocityComponent,
         &RigidBodyMassPropsComponent,
     )>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     for (player, mut rb_vel, rb_mprops) in query.iter_mut() {
         let _up = keyboard_input.pressed(KeyCode::W);
         let _down = keyboard_input.pressed(KeyCode::S);
         let left = keyboard_input.pressed(KeyCode::A);
         let right = keyboard_input.pressed(KeyCode::D);
-        let jump = keyboard_input.just_released(KeyCode::Space);
+
+        let jump = cheat_codes.is_code_activated(&CheatCodeKind::Jump)
+            && keyboard_input.just_released(KeyCode::Space);
 
         let x_axis = -(left as i8) + right as i8;
 
@@ -176,7 +180,6 @@ fn detect_char_interactable(
                     {
                         println!("Picked up: {}", char_component.value);
                         collected_chars.values.push(char_component.value);
-                        println!("Length of chars: {}", collected_chars.values.len());
                         commands.entity(entity).despawn();
                     }
                 }

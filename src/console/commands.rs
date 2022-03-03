@@ -1,3 +1,4 @@
+use crate::runner::CollectedChars;
 use crate::{cheat_codes::CheatCodeResource, states::GameStates};
 
 use super::{event::*, ConsoleData};
@@ -9,6 +10,7 @@ pub fn command_handler(
     mut data: ResMut<ConsoleData>,
     mut game_state: ResMut<State<GameStates>>,
     mut cheat_codes_res: ResMut<CheatCodeResource>,
+    mut collected_chars: ResMut<CollectedChars>,
 ) {
     for SendCommandEvent(command) in cmd_reader.iter() {
         // skip if the command is empty
@@ -35,10 +37,19 @@ pub fn command_handler(
                     "Activating cheat code: <{}>...",
                     args[1]
                 )));
-                print_to_console.send(PrintToConsoleEvent(format!(
-                    "Activation result: {}",
-                    cheat_codes_res.activate_code(args[1]).repr()
-                )));
+
+                let can_activate = is_valid_cheat(&mut collected_chars, args[1]);
+
+                if can_activate {
+                    print_to_console.send(PrintToConsoleEvent(format!(
+                        "Activation result: {}",
+                        cheat_codes_res.activate_code(args[1]).repr()
+                    )));
+                } else {
+                    print_to_console.send(PrintToConsoleEvent(format!(
+                        "Failed to activate. Need more information."
+                    )));
+                }
             }
             "exit" => {
                 print_to_console.send(PrintToConsoleEvent("Closing session...".to_string()));
@@ -52,4 +63,22 @@ pub fn command_handler(
             }
         }
     }
+}
+
+pub fn is_valid_cheat(collected_chars: &mut CollectedChars, code_text: &str) -> bool {
+    let original_collected_chars = collected_chars.values.clone();
+    for ch in code_text.chars() {
+        if !collected_chars.values.contains(&ch) {
+            collected_chars.values = original_collected_chars;
+            return false;
+        }
+
+        let index = collected_chars
+            .values
+            .iter()
+            .position(|val| *val == ch)
+            .unwrap();
+        collected_chars.values.remove(index);
+    }
+    true
 }

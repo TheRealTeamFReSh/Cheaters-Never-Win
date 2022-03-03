@@ -342,3 +342,12 @@ pub fn generate_random_code(rarity: CheatCodeRarity) -> String {
 
     Alphanumeric.sample_string(&mut rand::thread_rng(), length)
 }
+
+pub fn shuffle_code_text(s: &String, indices: Vec<u8>) -> String {
+    let mut result = vec![' '; s.len()];
+    for (i, c) in indices.into_iter().zip(s.chars()) {
+        result[i as usize] = c;
+    }
+
+    return result.into_iter().collect();
+}

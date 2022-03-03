@@ -9,7 +9,9 @@ mod camera;
 mod cheat_codes;
 mod console;
 mod enemies;
+mod game_over;
 mod interactables;
+mod letter_gutter;
 mod main_menu;
 mod pause_menu;
 mod physics;
@@ -42,7 +44,9 @@ fn main() {
         .add_plugin(platforms::PlatformsPlugin)
         .add_plugin(enemies::EnemiesPlugin)
         .add_plugin(toast::ToastPlugin)
+        .add_plugin(game_over::GameOverPlugin)
         .add_plugin(interactables::InteractablesPlugin)
+        .add_plugin(letter_gutter::LetterGutterPlugin)
         .add_plugin(AudioPlugin)
         .add_state(states::GameStates::MainMenu)
         .add_plugin(stats::GameStatsPlugin)

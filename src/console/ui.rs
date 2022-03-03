@@ -1,7 +1,5 @@
 use bevy::prelude::*;
 
-use crate::camera::UICameraComponent;
-
 use super::ConsoleAssets;
 
 // Components
@@ -32,19 +30,10 @@ pub fn hide_foreground(
 }
 
 // building the UI of the console
-pub fn build_ui(
-    mut commands: Commands,
-    console_assets: Res<ConsoleAssets>,
-    window: Res<Windows>,
-    camera: Query<&Transform, With<UICameraComponent>>,
-) {
+pub fn build_ui(mut commands: Commands, console_assets: Res<ConsoleAssets>, window: Res<Windows>) {
     info!("[ConsolePlugin] Building console UI");
 
     let current_window = window.get_primary().unwrap();
-    let mut camera_pos = 0.0;
-    for transform in camera.iter() {
-        camera_pos = transform.translation.x;
-    }
 
     // ---------- UI COMPONENTS ----------//
 
@@ -57,10 +46,6 @@ pub fn build_ui(
             ),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            position: Rect {
-                left: Val::Px(camera_pos),
-                ..Default::default()
-            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 0).into(),

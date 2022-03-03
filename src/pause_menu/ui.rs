@@ -7,7 +7,6 @@ use crate::pause_menu::button::UIButton;
 pub fn build_ui(
     mut commands: Commands,
     window: Res<Windows>,
-    camera: Query<&Transform>,
     mut nine_patches: ResMut<Assets<NinePatchBuilder>>,
     asset_server: Res<AssetServer>,
 ) {
@@ -20,10 +19,6 @@ pub fn build_ui(
     let font_handle: Handle<Font> = asset_server.load("fonts/HateYourWriting.ttf");
 
     let current_window = window.get_primary().unwrap();
-    let mut camera_pos = 0.0;
-    for transform in camera.iter() {
-        camera_pos = transform.translation.x;
-    }
 
     // ---------- UI COMPONENTS ----------//
 
@@ -37,10 +32,6 @@ pub fn build_ui(
             flex_direction: FlexDirection::ColumnReverse,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            position: Rect {
-                left: Val::Px(camera_pos),
-                ..Default::default()
-            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 150).into(),

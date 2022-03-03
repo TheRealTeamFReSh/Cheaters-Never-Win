@@ -24,9 +24,9 @@ impl UIButton {
     pub fn spawn(&self, parent: &mut ChildBuilder) {
         let container_component = ButtonBundle {
             style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                size: Size::new(Val::Px(200.0), Val::Px(65.0)),
                 // center button
-                margin: Rect::all(Val::Auto),
+                margin: Rect::all(Val::Px(10.)),
                 // horizontally center child text
                 justify_content: JustifyContent::Center,
                 // vertically center child text

@@ -196,7 +196,7 @@ fn build_ui(
         text: Text {
             sections: vec![TextSection {
                 value: format!(
-                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}\n\nAvg speed: {:.2}\n\nCodes activated: {}/{}",
+                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}\n\nAvg speed: {:.2}m/s\n\nCodes activated: {}/{}",
                     stats_res.get_score(),
                     stats_res.distance,
                     format_time(stats_res.run_time),

@@ -101,10 +101,6 @@ pub fn update_avg_speed(
 ) {
     let velocity: Vec2 = query.get_single_mut().unwrap().linvel.into();
     let avg_dist = stats_res.run_time as f32 * stats_res.avg_speed;
-    stats_res.avg_speed = (avg_dist + velocity.length() * (time.delta_seconds_f64() as f32))
+    stats_res.avg_speed = (avg_dist + velocity.x * (time.delta_seconds_f64() as f32))
         / (stats_res.run_time as f32 + time.delta_seconds_f64() as f32);
-
-    if velocity.length() != 0.0 {
-        println!("{}", velocity.length());
-    }
 }

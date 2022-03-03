@@ -49,13 +49,18 @@ impl Plugin for PlayerPlugin {
             .add_event::<GameOverEvent>()
             .add_system_set(
                 SystemSet::on_update(GameStates::Main)
+                    .with_system(player_feet)
+                    .label("player_feet"),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)
                     .with_system(animate_sprite)
                     .with_system(move_character)
+                    .after("player_feet")
                     .with_system(detect_char_interactable)
                     .with_system(player_collide_enemy)
-                    .with_system(player_fall_damage)
-                    .with_system(player_feet),
+                    .with_system(player_fall_damage),
             );
     }
 }
@@ -147,36 +152,64 @@ pub fn player_feet(
     for event in intersection_events.iter() {
         let collider1_entity = event.collider1.entity();
         let collider2_entity = event.collider2.entity();
+
         for feet_entity in player_feet_query.iter() {
             for mut player in player_query.iter_mut() {
+                // remove index 0 if there are 3 elements
+                if player.feet_touching_platforms.platforms.len() > 2 {
+                    player.feet_touching_platforms.platforms.remove(0);
+                }
+
                 if event.intersecting {
-                    if collider1_entity == feet_entity {
+                    if collider1_entity == feet_entity
+                        && !player
+                            .feet_touching_platforms
+                            .platforms
+                            .contains(&collider2_entity)
+                    {
                         player
                             .feet_touching_platforms
                             .platforms
                             .push(collider2_entity);
-                    } else if collider2_entity == feet_entity {
+                    } else if collider2_entity == feet_entity
+                        && !player
+                            .feet_touching_platforms
+                            .platforms
+                            .contains(&collider1_entity)
+                    {
                         player
                             .feet_touching_platforms
                             .platforms
                             .push(collider1_entity);
                     }
                 } else if collider1_entity == feet_entity {
-                    let index = player
+                    while player
                         .feet_touching_platforms
                         .platforms
-                        .iter()
-                        .position(|x| *x == collider2_entity)
-                        .unwrap();
-                    player.feet_touching_platforms.platforms.remove(index);
+                        .contains(&collider2_entity)
+                    {
+                        let index = player
+                            .feet_touching_platforms
+                            .platforms
+                            .iter()
+                            .position(|x| *x == collider2_entity)
+                            .unwrap();
+                        player.feet_touching_platforms.platforms.remove(index);
+                    }
                 } else if collider2_entity == feet_entity {
-                    let index = player
+                    while player
                         .feet_touching_platforms
                         .platforms
-                        .iter()
-                        .position(|x| *x == collider1_entity)
-                        .unwrap();
-                    player.feet_touching_platforms.platforms.remove(index);
+                        .contains(&collider1_entity)
+                    {
+                        let index = player
+                            .feet_touching_platforms
+                            .platforms
+                            .iter()
+                            .position(|x| *x == collider1_entity)
+                            .unwrap();
+                        player.feet_touching_platforms.platforms.remove(index);
+                    }
                 }
             }
         }
@@ -204,6 +237,7 @@ pub fn animate_sprite(
             timer.0.tick(time.delta());
             if timer.0.just_finished() {
                 // is the player jumping
+                info!("{:?}", player.feet_touching_platforms.platforms);
                 if player.feet_touching_platforms.platforms.is_empty() {
                     // player is jumping
                     if sprite.index < player_animation_resource.jump.offset

@@ -141,7 +141,9 @@
 					position: (300.0, -150.0),
 				),
 			],
-			terminals: [],
+			terminals: [
+				(50.0, -240.0)
+			],
 			chars: [
 				(
 					cheat_kind: None,

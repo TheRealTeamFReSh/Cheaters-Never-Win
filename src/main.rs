@@ -43,7 +43,7 @@ fn main() {
         .add_plugin(toast::ToastPlugin)
         .add_plugin(game_over::GameOverPlugin)
         .add_plugin(interactables::InteractablesPlugin)
-        .add_state(states::GameStates::GameOver)
+        .add_state(states::GameStates::MainMenu)
         .add_plugin(stats::GameStatsPlugin)
         .add_startup_system(camera::add_camera)
         // TODO: remove

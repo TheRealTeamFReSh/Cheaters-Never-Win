@@ -16,6 +16,20 @@ impl Plugin for GameOverPlugin {
         app.add_system_set(SystemSet::on_enter(GameStates::GameOver).with_system(ui::build_ui));
         app.add_system_set(SystemSet::on_update(GameStates::GameOver).with_system(button_handler));
         app.add_system_set(SystemSet::on_exit(GameStates::GameOver).with_system(ui_destroyer));
+
+        app.add_system_set(
+            SystemSet::on_update(GameStates::Main).with_system(open_gameover_screen),
+        );
+    }
+}
+
+fn open_gameover_screen(
+    mut keyboard: ResMut<Input<KeyCode>>,
+    mut game_state: ResMut<State<GameStates>>,
+) {
+    if keyboard.just_pressed(KeyCode::G) {
+        game_state.push(GameStates::GameOver).unwrap();
+        keyboard.reset(KeyCode::G);
     }
 }
 

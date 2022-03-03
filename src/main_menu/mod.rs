@@ -4,6 +4,7 @@ use crate::{
     pause_menu::button::{UIButton, HOVERED_BUTTON, NORMAL_BUTTON, PRESSED_BUTTON},
     states::GameStates,
 };
+use bevy_kira_audio::Audio;
 mod ui;
 
 #[derive(Component)]
@@ -13,11 +14,19 @@ pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         // on enter
-        app.add_system_set(SystemSet::on_enter(GameStates::MainMenu).with_system(ui::build_ui));
+        app.add_system_set(
+            SystemSet::on_enter(GameStates::MainMenu)
+                .with_system(ui::build_ui)
+                .with_system(start_automation_audio),
+        );
         // on update
         app.add_system_set(SystemSet::on_update(GameStates::MainMenu).with_system(button_handler));
         // on exit
-        app.add_system_set(SystemSet::on_exit(GameStates::MainMenu).with_system(destroy_menu));
+        app.add_system_set(
+            SystemSet::on_exit(GameStates::MainMenu)
+                .with_system(destroy_menu)
+                .with_system(start_gameplay_audio),
+        );
     }
 }
 
@@ -56,4 +65,14 @@ pub fn button_handler(
             }
         }
     }
+}
+
+fn start_automation_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
+    audio.stop();
+    audio.play_looped(asset_server.load("automation.mp3"));
+}
+
+fn start_gameplay_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
+    audio.stop();
+    audio.play_looped(asset_server.load("cyberpunk_moonlight_sonata.mp3"));
 }

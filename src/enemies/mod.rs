@@ -54,7 +54,6 @@ fn spawn_slime(
         .spawn_bundle(SpriteBundle {
             texture: asset_server.load("drone.png"),
             transform: Transform {
-                //scale: Vec3::new(1.0, 1.0, 1.0),
                 translation: Vec3::new(0.0, 0.0, 51.0),
                 ..Default::default()
             },
@@ -84,8 +83,8 @@ fn spawn_slime(
         .insert(Enemy)
         .insert(SlimeEnemy {
             jump_timer: Timer::from_seconds(3.0, true),
-            jump_impulse: 300.0,
-            jump_torque_impulse: 60.0,
+            jump_impulse: 400.0,
+            jump_torque_impulse: 30.0,
         })
         .insert(Name::new("Enemy-Slime"));
 }

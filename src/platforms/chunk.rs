@@ -78,7 +78,12 @@ pub fn spawn_chunk(
     }
 
     for terminal_position in chunk.terminals.iter() {
-        spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
+        spawn_terminal(
+            commands,
+            asset_server,
+            texture_atlases,
+            &(*terminal_position + Vec2::new(x_offset, 0.0)),
+        )
     }
 
     // TODO: needs some refactoring

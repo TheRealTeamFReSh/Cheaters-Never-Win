@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::distributions::{Alphanumeric, DistString};
 use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
-use crate::interactables::{spawn_char, spawn_terminal};
-
 use super::platform;
+use crate::cheat_codes::{randomize_text, CheatCodeKind, CheatCodeRarity, CheatCodeResource};
+use crate::interactables::{spawn_char, spawn_terminal, InteractableComponent};
 use crate::{enemies, runner};
 
 #[derive(Deserialize)]
@@ -21,19 +22,19 @@ pub struct EnemyData {
 }
 
 #[derive(Deserialize)]
+pub struct CharData {
+    pub cheat_kind: Option<CheatCodeKind>,
+    pub positions: Vec<Vec2>,
+    pub is_random: bool,
+}
+
+#[derive(Deserialize)]
 pub struct ChunksResource {
     pub prelude_chunks: Vec<Chunk>,
     pub basic_chunks: Vec<Chunk>,
     pub jump_chunks: Vec<Chunk>,
     // add chunk vec for each cheat
     pub furthest_x: f32,
-}
-
-#[derive(Deserialize)]
-pub struct CharTextData {
-    // TODO: this value should be randomed
-    pub value: char,
-    pub position: Vec2,
 }
 
 #[derive(Deserialize)]
@@ -44,7 +45,7 @@ pub struct Chunk {
     pub chunk_offset: f32,
     // ability dependency? optional?
     pub terminals: Vec<Vec2>,
-    pub chars: Vec<CharTextData>,
+    pub chars: Vec<CharData>,
 }
 
 pub fn spawn_chunk(
@@ -54,6 +55,7 @@ pub fn spawn_chunk(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
     texture_atlases: &mut Assets<TextureAtlas>,
+    cheat_codes: &CheatCodeResource,
 ) {
     for platform_data in chunk.platforms.iter() {
         platform::spawn_platform(
@@ -76,17 +78,60 @@ pub fn spawn_chunk(
     }
 
     for terminal_position in chunk.terminals.iter() {
-        spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
-    }
-
-    for char_data in chunk.chars.iter() {
-        spawn_char(
+        spawn_terminal(
             commands,
             asset_server,
             texture_atlases,
-            char_data.value,
-            &char_data.position,
+            &(*terminal_position + Vec2::new(x_offset, 0.0)),
         )
+    }
+
+    // TODO: needs some refactoring
+    for ch_data in &chunk.chars {
+        if let Some(cheat_kind) = ch_data.cheat_kind {
+            let code = cheat_codes.codes.get(&cheat_kind).unwrap();
+            let shuffled_text = match code.rarity {
+                CheatCodeRarity::Mandatory => {
+                    randomize_text(&code.text, vec![2, 3, 1, 0], ch_data.is_random)
+                }
+                CheatCodeRarity::Common => {
+                    randomize_text(&code.text, vec![2, 3, 1, 0], ch_data.is_random)
+                }
+                CheatCodeRarity::Rare => {
+                    randomize_text(&code.text, vec![2, 5, 3, 1, 0, 4], ch_data.is_random)
+                }
+                CheatCodeRarity::Legendary => {
+                    randomize_text(&code.text, vec![4, 2, 6, 3, 1, 7, 0, 5], ch_data.is_random)
+                }
+            };
+
+            for n in 0..ch_data.positions.len() {
+                let ch_position = ch_data.positions[n].clone();
+                let ch = shuffled_text.chars().nth(n).unwrap();
+                spawn_char(
+                    commands,
+                    asset_server,
+                    texture_atlases,
+                    ch,
+                    &(ch_position + Vec2::new(x_offset, 0.0)),
+                );
+            }
+        } else {
+            let rand_chars = Alphanumeric
+                .sample_string(&mut rand::thread_rng(), ch_data.positions.len())
+                .to_lowercase();
+
+            for n in 0..rand_chars.len() {
+                let ch_position = ch_data.positions[n].clone();
+                spawn_char(
+                    commands,
+                    asset_server,
+                    texture_atlases,
+                    rand_chars.chars().nth(n).unwrap(),
+                    &(ch_position + Vec2::new(x_offset, 0.0)),
+                );
+            }
+        }
     }
 }
 
@@ -98,6 +143,7 @@ pub fn chunk_test_system(
     rapier_config: Res<RapierConfiguration>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     let chunk_to_spawn = chunks_resource.prelude_chunks.get(0);
 
@@ -109,6 +155,7 @@ pub fn chunk_test_system(
             &rapier_config,
             &asset_server,
             &mut texture_atlases,
+            &cheat_codes,
         );
     }
 }
@@ -119,6 +166,7 @@ pub fn generate_prelude_chunk(
     asset_server: Res<AssetServer>,
     mut chunks_resource: ResMut<ChunksResource>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     if chunks_resource.furthest_x <= 0.0 {
         let chunk_to_spawn = chunks_resource
@@ -133,6 +181,7 @@ pub fn generate_prelude_chunk(
             &rapier_config,
             &asset_server,
             &mut texture_atlases,
+            &cheat_codes,
         );
         chunks_resource.furthest_x = chunk_to_spawn.next_chunk_offset;
     }
@@ -145,6 +194,7 @@ pub fn generate_chunks(
     mut chunks_resource: ResMut<ChunksResource>,
     player_query: Query<(&runner::Player, &RigidBodyPositionComponent)>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     assert!(chunks_resource.furthest_x >= 0.0);
 
@@ -176,9 +226,67 @@ pub fn generate_chunks(
                     &rapier_config,
                     &asset_server,
                     &mut texture_atlases,
+                    &cheat_codes,
                 );
 
                 chunks_resource.furthest_x += chunk_to_spawn.next_chunk_offset;
+            }
+        }
+    }
+}
+
+pub fn despawn_platforms(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
+    platform_query: Query<(Entity, &RigidBodyPositionComponent), With<platform::Platform>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (platform_entity, platform_rb_pos) in platform_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - (platform_rb_pos.position.translation.x * rapier_config.scale)
+                > 10000.0
+            {
+                info!("despawning platform");
+                commands.entity(platform_entity).despawn_recursive();
+            }
+        }
+    }
+}
+
+pub fn despawn_enemies(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
+    enemy_query: Query<(Entity, &RigidBodyPositionComponent), With<enemies::Enemy>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (enemy_entity, enemy_rb_pos) in enemy_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - (enemy_rb_pos.position.translation.x * rapier_config.scale)
+                > 10000.0
+            {
+                info!("despawning enemy");
+                commands.entity(enemy_entity).despawn_recursive();
+            }
+        }
+    }
+}
+
+pub fn despawn_interactables(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
+    interactable_query: Query<(Entity, &Transform), With<InteractableComponent>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (interactable_entity, interactable_transform) in interactable_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - interactable_transform.translation.x
+                > 10000.0
+            {
+                info!("despawning interactable");
+                commands.entity(interactable_entity).despawn_recursive();
             }
         }
     }

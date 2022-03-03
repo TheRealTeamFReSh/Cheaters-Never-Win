@@ -92,18 +92,20 @@
 			],
 			chars: [
 				(
-					value: 's',
-					position: (160.0, -260.0),
-				),
-				(
-					value: 'w',
-					position: (200.0, -260.0),
+					cheat_kind: Some(Jump),
+					positions: [
+						(160.0, -260.0),
+						(280.0, -260.0),
+						(600.0, -260.0),
+						(680.0, -260.0),
+					],
+					is_random: false,
 				),
 			],
 			next_chunk_offset: 2240.0,
 			chunk_offset: 80.0,
 		),
-		
+
 	],
 	basic_chunks: [
 		(
@@ -139,8 +141,21 @@
 					position: (300.0, -150.0),
 				),
 			],
-			terminals: [],
-			chars: [],
+			terminals: [
+				(50.0, -240.0)
+			],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+						(112.0, -260.0),
+						(300.0, -260.0),
+						(400.0, -260.0),
+						(224.0, -260.0),
+					],
+					is_random: true,
+				),
+			],
 			next_chunk_offset: 576.0,
 			chunk_offset: 32.0,
 		),
@@ -177,11 +192,20 @@
 				),
 				*/
 			],
-			enemies: [
-
-			],
+			enemies: [],
 			terminals: [],
-			chars: [],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+						(0.0, -260.0),
+						(112.0, -260.0),
+						(176.0, -260.0),
+						(240.0, -260.0),
+					],
+					is_random: true,
+				),
+			],
 			next_chunk_offset: 576.0,
 			chunk_offset: 80.0,
 		),
@@ -216,11 +240,18 @@
 				),
 				*/
 			],
-			enemies: [
-
-			],
+			enemies: [],
 			terminals: [],
-			chars: [],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+						(0.0, -200.0),
+						(60.0, -200.0),
+					],
+					is_random: true,
+				),
+			],
 			next_chunk_offset: 576.0,
 			chunk_offset: 80.0,
 		),

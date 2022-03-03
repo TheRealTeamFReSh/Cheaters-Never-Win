@@ -1,8 +1,9 @@
 use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::SliceRandom;
+use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Deserialize)]
 pub enum CheatCodeKind {
     // Mandatory
     Jump,
@@ -142,7 +143,7 @@ impl CheatCodeResource {
         // iteration over all the existing codes
         for (_, code) in self.codes.iter() {
             // it we found a code
-            if code.text.eq(text) {
+            if code.text.eq(&text.to_lowercase()) {
                 if self.is_code_activated(&code.kind) {
                     return CheatCodeActivationResult::AlreadyActivated(code.kind);
                 }
@@ -340,5 +341,21 @@ pub fn generate_random_code(rarity: CheatCodeRarity) -> String {
         CheatCodeRarity::Legendary => 8,
     };
 
-    Alphanumeric.sample_string(&mut rand::thread_rng(), length)
+    Alphanumeric
+        .sample_string(&mut rand::thread_rng(), length)
+        .to_lowercase()
+}
+
+pub fn randomize_text(s: &String, indices: Vec<u8>, is_random_string: bool) -> String {
+    if !is_random_string {
+        let mut result = vec![' '; s.len()];
+        for (i, c) in indices.into_iter().zip(s.chars()) {
+            result[i as usize] = c;
+        }
+        return result.into_iter().collect();
+    } else {
+        return Alphanumeric
+            .sample_string(&mut rand::thread_rng(), s.len())
+            .to_lowercase();
+    }
 }

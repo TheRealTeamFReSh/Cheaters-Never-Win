@@ -5,7 +5,9 @@ pub enum GameStates {
     Main,
     ConsoleLoading,
     Console,
+    PauseMenu,
     TabMenuLoading,
     TabMenu,
     GameOver,
+    MainMenu,
 }

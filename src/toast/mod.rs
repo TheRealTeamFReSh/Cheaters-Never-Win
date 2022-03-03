@@ -10,8 +10,8 @@ use bevy_tweening::{
 use crate::cheat_codes::CheatCodeRarity;
 
 pub struct ShowToast {
-    value: String,
-    duration: Duration,
+    pub value: String,
+    pub duration: Duration,
 }
 
 #[derive(Component)]

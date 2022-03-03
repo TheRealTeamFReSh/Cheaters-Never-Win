@@ -1,4 +1,4 @@
-use crate::{camera::UICameraComponent, states::GameStates};
+use crate::states::GameStates;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -26,19 +26,11 @@ fn destroy_ui(mut commands: Commands, query: Query<Entity, With<LoadingScreenEnt
     info!("[LoadingScreenPlugin] Exiting state");
 }
 
-fn build_ui(
-    mut commands: Commands,
-    window: Res<Windows>,
-    camera: Query<&Transform, With<UICameraComponent>>,
-) {
+fn build_ui(mut commands: Commands, window: Res<Windows>) {
     info!("[LoadingScreenPlugin] Building loading screen");
 
     // setting the initial position of the window
     let current_window = window.get_primary().unwrap();
-    let mut camera_pos = 0.0;
-    for transform in camera.iter() {
-        camera_pos = transform.translation.x;
-    }
 
     let background = NodeBundle {
         style: Style {
@@ -49,10 +41,6 @@ fn build_ui(
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             flex_direction: FlexDirection::ColumnReverse,
-            position: Rect {
-                left: Val::Px(camera_pos),
-                ..Default::default()
-            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 255).into(),

@@ -1,138 +1,31 @@
-use std::collections::HashMap;
-
 use bevy::prelude::*;
-use bevy_loading::{prelude::AssetsLoading, LoadingPlugin};
 
 use crate::{
-    camera::UICameraComponent,
     cheat_codes::{CheatCodeKind, CheatCodeResource},
-    states::GameStates,
     stats::GameStatsResource,
 };
 
-pub struct TabMenuPlugin;
-impl Plugin for TabMenuPlugin {
-    fn build(&self, app: &mut App) {
-        // assets loading
-        app.add_plugin(LoadingPlugin {
-            loading_state: GameStates::TabMenuLoading,
-            next_state: GameStates::TabMenu,
-        });
-
-        app.add_system_set(
-            SystemSet::on_enter(GameStates::TabMenuLoading).with_system(load_assets),
-        );
-
-        // open menu trigger
-        app.add_system_set(SystemSet::on_update(GameStates::Main).with_system(open_menu_trigger));
-        app.add_system_set(
-            SystemSet::on_update(GameStates::TabMenu).with_system(close_menu_trigger),
-        );
-
-        // on enter
-        app.add_system_set(SystemSet::on_enter(GameStates::TabMenu).with_system(build_ui));
-
-        // on exit
-        app.add_system_set(SystemSet::on_exit(GameStates::TabMenu).with_system(destroy_menu));
-    }
-}
+use super::{TabMenuAssets, TabMenuContent};
 
 #[derive(Component)]
-pub struct TabMenuComponent;
+pub struct FirstPageComponent;
 
-fn destroy_menu(mut commands: Commands, query: Query<Entity, With<TabMenuComponent>>) {
-    for entity in query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
-}
-
-fn open_menu_trigger(
-    mut keyboard: ResMut<Input<KeyCode>>,
-    mut game_state: ResMut<State<GameStates>>,
-) {
-    if keyboard.just_pressed(KeyCode::Tab) {
-        game_state.push(GameStates::TabMenuLoading).unwrap();
-        keyboard.reset(KeyCode::Tab);
-    }
-}
-
-fn close_menu_trigger(
-    mut keyboard: ResMut<Input<KeyCode>>,
-    mut game_state: ResMut<State<GameStates>>,
-) {
-    if keyboard.just_pressed(KeyCode::Tab) || keyboard.just_pressed(KeyCode::Escape) {
-        game_state.pop().unwrap();
-        keyboard.reset(KeyCode::Tab);
-        keyboard.reset(KeyCode::Escape);
-    }
-}
-
-pub struct TabMenuAssets {
-    background: Handle<Image>,
-    font: Handle<Font>,
-    icons: HashMap<CheatCodeKind, Handle<Image>>,
-}
-
-fn load_assets(
+pub fn build_ui(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut loading: ResMut<AssetsLoading>,
-    cheat_codes_res: Res<CheatCodeResource>,
-) {
-    let background = asset_server.load("open_book.png");
-    loading.add(&background);
-
-    let font = asset_server.load("fonts/OldLondon.ttf");
-    loading.add(&font);
-
-    let mut icons = HashMap::new();
-
-    for (kind, code) in cheat_codes_res.codes.iter() {
-        let icon = asset_server.load(&format!("cheat_codes/{}", code.image));
-        loading.add(&icon);
-        icons.insert(*kind, icon);
-    }
-
-    commands.insert_resource(TabMenuAssets {
-        background,
-        font,
-        icons,
-    })
-}
-
-fn build_ui(
-    mut commands: Commands,
-    assets: Res<TabMenuAssets>,
-    window: Res<Windows>,
-    camera: Query<&Transform, With<UICameraComponent>>,
+    assets: ResMut<TabMenuAssets>,
+    query: Query<Entity, With<TabMenuContent>>,
     cheat_codes_res: Res<CheatCodeResource>,
     stats_res: Res<GameStatsResource>,
+    window: Res<Windows>,
 ) {
     let current_window = window.get_primary().unwrap();
-    let mut camera_pos = 0.0;
-    for transform in camera.iter() {
-        camera_pos = transform.translation.x;
-    }
+
+    // despawning previous content
+    let content_entity = query.single();
+    let mut content = commands.entity(content_entity);
+    content.despawn_descendants();
 
     // ---------- UI COMPONENTS ----------//
-    // root component
-    let parent_component = NodeBundle {
-        style: Style {
-            size: Size::new(
-                Val::Px(current_window.width()),
-                Val::Px(current_window.height()),
-            ),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            position: Rect {
-                left: Val::Px(camera_pos),
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        color: Color::rgba_u8(0, 0, 0, 150).into(),
-        ..Default::default()
-    };
 
     let background_component = ImageBundle {
         style: Style {
@@ -143,7 +36,7 @@ fn build_ui(
             ),
             ..Default::default()
         },
-        image: assets.background.clone().into(),
+        image: assets.first_page.clone().into(),
         ..Default::default()
     };
 
@@ -165,7 +58,7 @@ fn build_ui(
             align_self: AlignSelf::FlexEnd,
             align_items: AlignItems::Center,
             position: Rect {
-                top: Val::Px(20.),
+                top: Val::Px(30.),
                 ..Default::default()
             },
             ..Default::default()
@@ -196,7 +89,7 @@ fn build_ui(
         text: Text {
             sections: vec![TextSection {
                 value: format!(
-                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}\n\nAvg speed: {:.2}\n\nCodes activated: {}/{}",
+                    "Score: {}\n\nDistance: {:.2}m\n\nTime: {}\n\nAvg speed: {:.2}m/s\n\nCodes activated: {}/{}",
                     stats_res.get_score(),
                     stats_res.distance,
                     format_time(stats_res.run_time),
@@ -232,8 +125,7 @@ fn build_ui(
 
     // ---------- UI TREE CONSTRUCTION ----------//
 
-    commands
-        .spawn_bundle(parent_component)
+    content
         .with_children(|parent| {
             parent.spawn_bundle(background_component);
             parent.spawn_bundle(book).with_children(|parent| {
@@ -249,7 +141,7 @@ fn build_ui(
                 });
             });
         })
-        .insert(TabMenuComponent);
+        .insert(FirstPageComponent);
 }
 
 fn format_time(duration: f64) -> String {

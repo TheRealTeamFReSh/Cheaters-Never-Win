@@ -1,7 +1,9 @@
-use bevy::prelude::*;
+use bevy::{app::AppExit, prelude::*};
 use bevy_ninepatch::NinePatchPlugin;
 
 use crate::states::GameStates;
+
+use self::button::{UIButton, HOVERED_BUTTON, NORMAL_BUTTON, PRESSED_BUTTON};
 
 pub mod button;
 mod ui;
@@ -21,7 +23,7 @@ impl Plugin for PauseMenuPlugin {
         app.add_system_set(
             SystemSet::on_update(GameStates::PauseMenu)
                 .with_system(close_pause_menu)
-                .with_system(button::button_system),
+                .with_system(button_handler),
         );
         // on exit
         app.add_system_set(SystemSet::on_exit(GameStates::PauseMenu).with_system(destroy_menu));
@@ -53,5 +55,34 @@ fn close_pause_menu(
     if keyboard.just_pressed(KeyCode::Escape) {
         game_state.pop().unwrap();
         keyboard.reset(KeyCode::Escape);
+    }
+}
+
+pub fn button_handler(
+    mut interaction_query: Query<(&Interaction, &mut UiColor, &UIButton), Changed<Interaction>>,
+    mut game_state: ResMut<State<GameStates>>,
+    mut exit: EventWriter<AppExit>,
+) {
+    for (interaction, mut color, button) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Clicked => {
+                *color = PRESSED_BUTTON.into();
+                match button.name.as_str() {
+                    "resume" => {
+                        game_state.pop().unwrap();
+                    }
+                    "quit" => {
+                        exit.send(AppExit);
+                    }
+                    _ => {}
+                }
+            }
+            Interaction::Hovered => {
+                *color = HOVERED_BUTTON.into();
+            }
+            Interaction::None => {
+                *color = NORMAL_BUTTON.into();
+            }
+        }
     }
 }

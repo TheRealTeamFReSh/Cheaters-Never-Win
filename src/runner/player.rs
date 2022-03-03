@@ -1,6 +1,7 @@
 use crate::{camera::TwoDCameraComponent, physics, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
+use std::collections::HashMap;
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
@@ -30,6 +31,16 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CollectedChars { values: Vec::new() })
+            .insert_resource(PlayerAnimationResource {
+                run: AnimationData {
+                    length: 8,
+                    offset: 0,
+                },
+                jump: AnimationData {
+                    length: 4,
+                    offset: 8,
+                },
+            })
             .add_system_set(
                 SystemSet::on_enter(GameStates::Main)
                     .with_system(spawn_character.after("setup_physics")),
@@ -52,8 +63,8 @@ fn spawn_character(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     rapier_config: Res<RapierConfiguration>,
 ) {
-    let texture_handle = asset_server.load("player_run.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 1);
+    let texture_handle = asset_server.load("player.png");
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 2);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
@@ -162,20 +173,57 @@ pub fn player_feet(
     }
 }
 
+pub struct PlayerAnimationResource {
+    pub run: AnimationData,
+    pub jump: AnimationData,
+}
+
+pub struct AnimationData {
+    pub length: usize,
+    pub offset: usize,
+}
+
 pub fn animate_sprite(
     time: Res<Time>,
+    player_animation_resource: Res<PlayerAnimationResource>,
     texture_atlases: Res<Assets<TextureAtlas>>,
+    player_query: Query<&Player>,
     mut query: Query<(
         &mut PlayerAnimationTimer,
         &mut TextureAtlasSprite,
         &Handle<TextureAtlas>,
     )>,
 ) {
-    for (mut timer, mut sprite, texture_atlas_handle) in query.iter_mut() {
-        timer.0.tick(time.delta());
-        if timer.0.just_finished() {
-            let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
-            sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
+    for player in player_query.iter() {
+        for (mut timer, mut sprite, texture_atlas_handle) in query.iter_mut() {
+            timer.0.tick(time.delta());
+            if timer.0.just_finished() {
+                let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+                // is the player jumping
+                if player.feet_touching_platforms.platforms.is_empty() {
+                    // player is jumping
+                    if sprite.index < player_animation_resource.jump.offset
+                        || sprite.index
+                            >= (player_animation_resource.jump.length
+                                + player_animation_resource.jump.offset)
+                    {
+                        sprite.index = player_animation_resource.jump.offset;
+                    } else if sprite.index
+                        < (player_animation_resource.jump.length
+                            + player_animation_resource.jump.offset)
+                            - 1
+                    {
+                        sprite.index += 1;
+                    }
+                } else {
+                    // player is running
+                    if sprite.index >= player_animation_resource.run.length {
+                        sprite.index = 0;
+                    } else {
+                        sprite.index = (sprite.index + 1) % player_animation_resource.run.length;
+                    }
+                }
+            }
         }
     }
 }

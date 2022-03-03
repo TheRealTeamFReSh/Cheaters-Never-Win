@@ -69,10 +69,10 @@ pub fn button_handler(
 
 fn start_automation_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
     audio.stop();
-    audio.play_looped(asset_server.load("automation.mp3"));
+    audio.play_looped(asset_server.load("automation.ogg"));
 }
 
 fn start_gameplay_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
     audio.stop();
-    audio.play_looped(asset_server.load("cyberpunk_moonlight_sonata.mp3"));
+    audio.play_looped(asset_server.load("cyberpunk_moonlight_sonata.ogg"));
 }

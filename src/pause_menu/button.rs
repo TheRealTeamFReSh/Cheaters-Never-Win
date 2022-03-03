@@ -59,6 +59,7 @@ impl UIButton {
     }
 }
 
+#[allow(dead_code)]
 pub fn button_system(
     mut interaction_query: Query<(&Interaction, &mut UiColor, &UIButton), Changed<Interaction>>,
 ) {

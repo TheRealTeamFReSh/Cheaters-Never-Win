@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::distributions::{Alphanumeric, DistString};
 use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
-use crate::interactables::{spawn_char, spawn_terminal};
-
 use super::platform;
-use crate::cheat_codes::{shuffle_code_text, CheatCodeResource};
-use crate::{enemies, interactables, runner};
+use crate::cheat_codes::{randomize_text, CheatCodeKind, CheatCodeRarity, CheatCodeResource};
+use crate::interactables::{spawn_char, spawn_terminal, InteractableComponent};
+use crate::{enemies, runner};
 
 #[derive(Deserialize)]
 pub struct PlatformData {
@@ -19,6 +19,13 @@ pub struct PlatformData {
 pub struct EnemyData {
     pub enemy_kind: enemies::EnemyKind,
     pub position: Vec2,
+}
+
+#[derive(Deserialize)]
+pub struct CharData {
+    pub cheat_kind: Option<CheatCodeKind>,
+    pub positions: Vec<Vec2>,
+    pub is_random: bool,
 }
 
 #[derive(Deserialize)]
@@ -38,7 +45,7 @@ pub struct Chunk {
     pub chunk_offset: f32,
     // ability dependency? optional?
     pub terminals: Vec<Vec2>,
-    pub chars: Vec<Vec2>,
+    pub chars: Vec<CharData>,
 }
 
 pub fn spawn_chunk(
@@ -74,13 +81,52 @@ pub fn spawn_chunk(
         spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
     }
 
-    let code_kind = cheat_codes.get_next_code();
-    let code = cheat_codes.codes.get(&code_kind).unwrap();
-    let shuffled_text = shuffle_code_text(&code.text, vec![2, 3, 1, 0]);
-    for n in 0..chunk.chars.len() {
-        let ch_position = &chunk.chars[n];
-        let ch = shuffled_text.chars().nth(n).unwrap();
-        spawn_char(commands, asset_server, texture_atlases, ch, &ch_position)
+    // TODO: needs some refactoring
+    for ch_data in &chunk.chars {
+        if let Some(cheat_kind) = ch_data.cheat_kind {
+            let code = cheat_codes.codes.get(&cheat_kind).unwrap();
+            let shuffled_text = match code.rarity {
+                CheatCodeRarity::Mandatory => {
+                    randomize_text(&code.text, vec![2, 3, 1, 0], ch_data.is_random)
+                }
+                CheatCodeRarity::Common => {
+                    randomize_text(&code.text, vec![2, 3, 1, 0], ch_data.is_random)
+                }
+                CheatCodeRarity::Rare => {
+                    randomize_text(&code.text, vec![2, 5, 3, 1, 0, 4], ch_data.is_random)
+                }
+                CheatCodeRarity::Legendary => {
+                    randomize_text(&code.text, vec![4, 2, 6, 3, 1, 7, 0, 5], ch_data.is_random)
+                }
+            };
+
+            for n in 0..ch_data.positions.len() {
+                let ch_position = ch_data.positions[n].clone();
+                let ch = shuffled_text.chars().nth(n).unwrap();
+                spawn_char(
+                    commands,
+                    asset_server,
+                    texture_atlases,
+                    ch,
+                    &(ch_position + Vec2::new(x_offset, 0.0)),
+                );
+            }
+        } else {
+            let rand_chars = Alphanumeric
+                .sample_string(&mut rand::thread_rng(), ch_data.positions.len())
+                .to_lowercase();
+
+            for n in 0..rand_chars.len() {
+                let ch_position = ch_data.positions[n].clone();
+                spawn_char(
+                    commands,
+                    asset_server,
+                    texture_atlases,
+                    rand_chars.chars().nth(n).unwrap(),
+                    &(ch_position + Vec2::new(x_offset, 0.0)),
+                );
+            }
+        }
     }
 }
 
@@ -226,7 +272,7 @@ pub fn despawn_interactables(
     mut commands: Commands,
     rapier_config: Res<RapierConfiguration>,
     player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
-    interactable_query: Query<(Entity, &Transform), With<interactables::InteractableComponent>>,
+    interactable_query: Query<(Entity, &Transform), With<InteractableComponent>>,
 ) {
     for player_rb_pos in player_query.iter() {
         for (interactable_entity, interactable_transform) in interactable_query.iter() {

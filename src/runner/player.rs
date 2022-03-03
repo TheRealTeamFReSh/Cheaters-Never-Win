@@ -300,7 +300,6 @@ fn detect_char_interactable(
                         && distance_y <= range
                         && distance_y >= -range
                     {
-                        println!("Picked up: {}", char_component.value);
                         collected_chars.values.push(char_component.value);
                         commands.entity(entity).despawn();
                     }

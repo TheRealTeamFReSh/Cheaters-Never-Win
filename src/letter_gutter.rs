@@ -36,6 +36,20 @@ pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..Default::default()
     };
 
+    let gutter_background = ImageBundle {
+        image: asset_server.load("gutter.png").into(),
+        style: Style {
+            position_type: PositionType::Absolute,
+            position: Rect {
+                bottom: Val::Px(10.),
+                left: Val::Px(10.),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+
     let text_container = TextBundle {
         text: Text::with_section(
             "",
@@ -48,6 +62,14 @@ pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..Default::default()
             },
         ),
+        style: Style {
+            position: Rect {
+                left: Val::Px(21.),
+                top: Val::Px(22.),
+                ..Default::default()
+            },
+            ..Default::default()
+        },
         ..Default::default()
     };
 
@@ -55,6 +77,7 @@ pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn_bundle(parent_component)
         .with_children(|parent| {
+            parent.spawn_bundle(gutter_background);
             parent.spawn_bundle(text_container).insert(GutterComponent);
         });
 }

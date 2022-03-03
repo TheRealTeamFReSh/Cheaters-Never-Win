@@ -15,7 +15,7 @@ pub struct BackgroundLayerPlugin;
 
 impl Plugin for BackgroundLayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_initial_layers)
+        app.add_system_set(SystemSet::on_enter(GameStates::Main).with_system(spawn_initial_layers))
             .add_system_set(SystemSet::on_update(GameStates::Main).with_system(update_layers));
     }
 }

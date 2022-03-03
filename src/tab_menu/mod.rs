@@ -72,7 +72,7 @@ fn switch_page(
         // on the first page
         if assets.current_page == "first".to_string() {
             assets.current_page = "second".to_string();
-            second_page::build_ui(commands, assets, query, window);
+            second_page::build_ui(commands, assets, query, cheat_codes_res, window);
         } else {
             assets.current_page = "first".to_string();
             first_page::build_ui(commands, assets, query, cheat_codes_res, stats_res, window);
@@ -121,6 +121,7 @@ pub struct TabMenuAssets {
     first_page: Handle<Image>,
     second_page: Handle<Image>,
     font: Handle<Font>,
+    font_2: Handle<Font>,
     icons: HashMap<CheatCodeKind, Handle<Image>>,
     current_page: String,
 }
@@ -140,6 +141,9 @@ fn load_assets(
     let font = asset_server.load("fonts/OldLondon.ttf");
     loading.add(&font);
 
+    let font_2 = asset_server.load("fonts/VT323-Regular.ttf");
+    loading.add(&font_2);
+
     let mut icons = HashMap::new();
 
     for (kind, code) in cheat_codes_res.codes.iter() {
@@ -152,6 +156,7 @@ fn load_assets(
         first_page,
         second_page,
         font,
+        font_2,
         icons,
         current_page: "first".to_string(),
     })

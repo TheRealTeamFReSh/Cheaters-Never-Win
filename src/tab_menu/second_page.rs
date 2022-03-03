@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::cheat_codes::CheatCodeResource;
+
 use super::{TabMenuAssets, TabMenuContent};
 
 #[derive(Component)]
@@ -9,6 +11,7 @@ pub fn build_ui(
     mut commands: Commands,
     assets: ResMut<TabMenuAssets>,
     query: Query<Entity, With<TabMenuContent>>,
+    cheat_codes_res: Res<CheatCodeResource>,
     window: Res<Windows>,
 ) {
     let current_window = window.get_primary().unwrap();
@@ -51,7 +54,7 @@ pub fn build_ui(
             align_self: AlignSelf::FlexEnd,
             align_items: AlignItems::Center,
             position: Rect {
-                top: Val::Px(30.),
+                top: Val::Px(125.),
                 ..Default::default()
             },
             ..Default::default()
@@ -78,17 +81,23 @@ pub fn build_ui(
         ..Default::default()
     };
 
+    let sections = cheat_codes_res
+        .codes
+        .values()
+        .map(|code| TextSection {
+            value: format!("{:?}: {}\n", code.kind, code.text.to_lowercase()),
+            style: TextStyle {
+                font: assets.font_2.clone(),
+                color: Color::rgb_u8(74, 28, 33).into(),
+                font_size: 20.,
+            },
+            ..Default::default()
+        })
+        .collect::<Vec<TextSection>>();
+
     let found_codes = TextBundle {
         text: Text {
-            sections: vec![TextSection {
-                value: "some text".to_string(),
-                style: TextStyle {
-                    font: assets.font.clone(),
-                    color: Color::rgb_u8(74, 28, 33).into(),
-                    font_size: 20.,
-                },
-                ..Default::default()
-            }],
+            sections,
             ..Default::default()
         },
         ..Default::default()

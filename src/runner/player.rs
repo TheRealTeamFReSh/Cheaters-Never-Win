@@ -11,6 +11,7 @@ pub struct Player {
     pub speed: f32,
     pub acceleration: f32,
     pub deceleration: f32,
+    pub lives: i32,
 }
 
 #[derive(Component)]
@@ -49,6 +50,7 @@ fn spawn_character(
         speed: 8.0,
         acceleration: 0.09,
         deceleration: 0.2,
+        lives: 3,
     };
 
     let collider_size_hx = 24.0 * 2.0 / rapier_config.scale / 2.0;

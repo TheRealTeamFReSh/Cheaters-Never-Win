@@ -48,13 +48,12 @@ fn spawn_slime(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_radius = 24.0 * 2.0 / rapier_config.scale / 2.0;
+    let collider_radius = 26.0 / rapier_config.scale / 2.0;
 
     commands
         .spawn_bundle(SpriteBundle {
-            texture: asset_server.load("slime.png"),
+            texture: asset_server.load("drone.png"),
             transform: Transform {
-                scale: Vec3::new(2.0, 2.0, 1.0),
                 translation: Vec3::new(0.0, 0.0, 51.0),
                 ..Default::default()
             },
@@ -84,8 +83,8 @@ fn spawn_slime(
         .insert(Enemy)
         .insert(SlimeEnemy {
             jump_timer: Timer::from_seconds(3.0, true),
-            jump_impulse: 1000.0,
-            jump_torque_impulse: 800.0,
+            jump_impulse: 400.0,
+            jump_torque_impulse: 30.0,
         })
         .insert(Name::new("Enemy-Slime"));
 }

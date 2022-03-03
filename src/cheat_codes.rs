@@ -1,8 +1,9 @@
 use rand::distributions::{Alphanumeric, DistString};
 use rand::prelude::SliceRandom;
+use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, Deserialize)]
 pub enum CheatCodeKind {
     // Mandatory
     Jump,
@@ -345,11 +346,16 @@ pub fn generate_random_code(rarity: CheatCodeRarity) -> String {
         .to_lowercase()
 }
 
-pub fn shuffle_code_text(s: &String, indices: Vec<u8>) -> String {
-    let mut result = vec![' '; s.len()];
-    for (i, c) in indices.into_iter().zip(s.chars()) {
-        result[i as usize] = c;
+pub fn randomize_text(s: &String, indices: Vec<u8>, is_random_string: bool) -> String {
+    if !is_random_string {
+        let mut result = vec![' '; s.len()];
+        for (i, c) in indices.into_iter().zip(s.chars()) {
+            result[i as usize] = c;
+        }
+        return result.into_iter().collect();
+    } else {
+        return Alphanumeric
+            .sample_string(&mut rand::thread_rng(), s.len())
+            .to_lowercase();
     }
-
-    return result.into_iter().collect();
 }

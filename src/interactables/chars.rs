@@ -33,7 +33,7 @@ pub fn spawn_char(
         })
         .insert(InteractableComponent {
             interactable_type,
-            range: 16.0,
+            range: 25.0,
         })
         .insert(CharTextComponent { value });
 }

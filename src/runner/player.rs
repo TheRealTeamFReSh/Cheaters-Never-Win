@@ -20,7 +20,10 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CollectedChars { values: Vec::new() })
-            .add_startup_system(spawn_character.after("setup_physics"))
+            .add_system_set(
+                SystemSet::on_enter(GameStates::Main)
+                    .with_system(spawn_character.after("setup_physics")),
+            )
             .add_system_set(
                 SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)

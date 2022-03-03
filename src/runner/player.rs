@@ -2,6 +2,7 @@ use crate::enemies::Enemy;
 use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
+use bevy_kira_audio::{Audio, AudioChannel};
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
@@ -374,6 +375,8 @@ fn detect_char_interactable(
         &Transform,
         &CharTextComponent,
     )>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     if let Some(player_transform) = player_query.iter().next() {
         for (entity, interactable, transform, char_component) in interactable_query.iter() {
@@ -388,6 +391,9 @@ fn detect_char_interactable(
                         && distance_y <= range
                         && distance_y >= -range
                     {
+                        let audio_channel = AudioChannel::new("sfx-channel".to_owned());
+                        audio.set_volume_in_channel(0.3, &audio_channel);
+                        audio.play_in_channel(asset_server.load("pickup.ogg"), &audio_channel);
                         collected_chars.values.push(char_component.value);
                         commands.entity(entity).despawn();
                     }

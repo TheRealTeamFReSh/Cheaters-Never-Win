@@ -43,7 +43,6 @@ fn main() {
         .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
         .add_plugin(letter_gutter::LetterGutterPlugin)
-        .add_state(states::GameStates::Main)
         .add_state(states::GameStates::MainMenu)
         .add_plugin(stats::GameStatsPlugin)
         .add_startup_system(camera::add_camera)

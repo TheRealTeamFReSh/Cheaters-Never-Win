@@ -1,3 +1,4 @@
+use crate::enemies::Enemy;
 use crate::{camera::TwoDCameraComponent, physics, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
@@ -26,12 +27,15 @@ impl Plugin for PlayerPlugin {
                 SystemSet::on_enter(GameStates::Main)
                     .with_system(spawn_character.after("setup_physics")),
             )
+            .add_event::<GameOverEvent>()
             .add_system_set(
                 SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)
                     .with_system(animate_sprite)
                     .with_system(move_character)
-                    .with_system(detect_char_interactable),
+                    .with_system(detect_char_interactable)
+                    .with_system(player_collide_enemy)
+                    .with_system(player_fall_damage),
             );
     }
 }
@@ -74,6 +78,11 @@ fn spawn_character(
         })
         .insert_bundle(ColliderBundle {
             shape: ColliderShape::cuboid(collider_size_hx, collider_size_hy).into(),
+            flags: ColliderFlags {
+                active_events: ActiveEvents::CONTACT_EVENTS,
+                ..Default::default()
+            }
+            .into(),
             material: ColliderMaterial {
                 friction: 0.5,
                 restitution: 0.0,
@@ -189,6 +198,47 @@ fn detect_char_interactable(
                     }
                 }
                 _ => {}
+            }
+        }
+    }
+}
+
+pub struct GameOverEvent;
+
+pub fn player_fall_damage(
+    mut player_query: Query<(&mut Player, &Transform)>,
+    mut game_over_event: EventWriter<GameOverEvent>,
+) {
+    for (mut player, transform) in player_query.iter_mut() {
+        if transform.translation.y < -400.0 {
+            player.lives = 0;
+            game_over_event.send(GameOverEvent);
+            info!("Fell down hole")
+        }
+    }
+}
+
+pub fn player_collide_enemy(
+    mut commands: Commands,
+    mut player_query: Query<(Entity, &mut Player)>,
+    enemy_query: Query<Entity, With<Enemy>>,
+    mut contact_events: EventReader<ContactEvent>,
+    mut game_over_event: EventWriter<GameOverEvent>,
+) {
+    for contact_event in contact_events.iter() {
+        if let ContactEvent::Started(h1, h2) = contact_event {
+            for (player_entity, mut player) in player_query.iter_mut() {
+                for enemy_entity in enemy_query.iter() {
+                    if h1.entity() == player_entity && h2.entity() == enemy_entity
+                        || h2.entity() == player_entity && h1.entity() == enemy_entity
+                    {
+                        player.lives -= 1;
+                        commands.entity(enemy_entity).despawn();
+                        if player.lives <= 0 {
+                            game_over_event.send(GameOverEvent);
+                        }
+                    }
+                }
             }
         }
     }

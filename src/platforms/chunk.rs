@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::distributions::{Alphanumeric, DistString};
 use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
-use crate::interactables::{spawn_char, spawn_terminal, InteractableComponent};
-
 use super::platform;
-use crate::cheat_codes::{shuffle_code_text, CheatCodeResource, CheatCodeKind, CheatCodeRarity};
+use crate::cheat_codes::{randomize_text, CheatCodeKind, CheatCodeRarity, CheatCodeResource};
+use crate::interactables::{spawn_char, spawn_terminal, InteractableComponent};
 use crate::{enemies, runner};
 
 #[derive(Deserialize)]
@@ -23,8 +23,9 @@ pub struct EnemyData {
 
 #[derive(Deserialize)]
 pub struct CharData {
-    pub cheat_kind: CheatCodeKind,
+    pub cheat_kind: Option<CheatCodeKind>,
     pub positions: Vec<Vec2>,
+    pub is_random: bool,
 }
 
 #[derive(Deserialize)]
@@ -80,20 +81,51 @@ pub fn spawn_chunk(
         spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
     }
 
+    // TODO: needs some refactoring
     for ch_data in &chunk.chars {
-        let code = cheat_codes.codes.get(&ch_data.cheat_kind).unwrap();
+        if let Some(cheat_kind) = ch_data.cheat_kind {
+            let code = cheat_codes.codes.get(&cheat_kind).unwrap();
+            let shuffled_text = match code.rarity {
+                CheatCodeRarity::Mandatory => {
+                    randomize_text(&code.text, vec![2, 3, 1, 0], ch_data.is_random)
+                }
+                CheatCodeRarity::Common => {
+                    randomize_text(&code.text, vec![2, 3, 1, 0], ch_data.is_random)
+                }
+                CheatCodeRarity::Rare => {
+                    randomize_text(&code.text, vec![2, 5, 3, 1, 0, 4], ch_data.is_random)
+                }
+                CheatCodeRarity::Legendary => {
+                    randomize_text(&code.text, vec![4, 2, 6, 3, 1, 7, 0, 5], ch_data.is_random)
+                }
+            };
 
-        let shuffled_text = match code.rarity {
-            CheatCodeRarity::Mandatory => shuffle_code_text(&code.text, vec![2, 3, 1, 0]),
-            CheatCodeRarity::Common => shuffle_code_text(&code.text, vec![2, 3, 1, 0]),
-            CheatCodeRarity::Rare => shuffle_code_text(&code.text, vec![2, 5, 3, 1, 0, 4]),
-            CheatCodeRarity::Legendary => shuffle_code_text(&code.text, vec![4, 2, 6, 3, 1, 7, 0, 5]),
-        };
+            for n in 0..ch_data.positions.len() {
+                let ch_position = ch_data.positions[n].clone();
+                let ch = shuffled_text.chars().nth(n).unwrap();
+                spawn_char(
+                    commands,
+                    asset_server,
+                    texture_atlases,
+                    ch,
+                    &(ch_position + Vec2::new(x_offset, 0.0)),
+                );
+            }
+        } else {
+            let rand_chars = Alphanumeric
+                .sample_string(&mut rand::thread_rng(), ch_data.positions.len())
+                .to_lowercase();
 
-        for n in 0..ch_data.positions.len() {
-            let ch_position = &ch_data.positions[n];
-            let ch = shuffled_text.chars().nth(n).unwrap();
-            spawn_char(commands, asset_server, texture_atlases, ch, &ch_position)
+            for n in 0..rand_chars.len() {
+                let ch_position = ch_data.positions[n].clone();
+                spawn_char(
+                    commands,
+                    asset_server,
+                    texture_atlases,
+                    rand_chars.chars().nth(n).unwrap(),
+                    &(ch_position + Vec2::new(x_offset, 0.0)),
+                );
+            }
         }
     }
 }

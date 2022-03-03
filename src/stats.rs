@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::RigidBodyVelocityComponent;
 
 use crate::{cheat_codes::CheatCodeResource, runner::Player, states::GameStates};
 
@@ -13,7 +12,6 @@ impl Plugin for GameStatsPlugin {
         app.add_system(update_max_distance);
         app.add_system(update_cheats_activated);
         app.add_system_set(SystemSet::on_update(GameStates::Main).with_system(update_run_time));
-        app.add_system_set(SystemSet::on_update(GameStates::Main).with_system(update_avg_speed));
     }
 }
 
@@ -23,7 +21,6 @@ pub struct GameStatsResource {
     pub enemy_score: usize,
     pub cheats_activated: usize,
     pub run_time: f64,
-    pub avg_speed: f32,
 }
 
 impl GameStatsResource {
@@ -34,7 +31,6 @@ impl GameStatsResource {
             enemy_score: 0,
             cheats_activated: 0,
             run_time: 0.,
-            avg_speed: 0.,
         }
     }
 
@@ -92,19 +88,4 @@ pub fn update_cheats_activated(
 
 pub fn update_run_time(time: Res<Time>, mut stats_res: ResMut<GameStatsResource>) {
     stats_res.run_time += time.delta_seconds_f64();
-}
-
-pub fn update_avg_speed(
-    time: Res<Time>,
-    mut query: Query<&mut RigidBodyVelocityComponent, With<Player>>,
-    mut stats_res: ResMut<GameStatsResource>,
-) {
-    let velocity: Vec2 = query.get_single_mut().unwrap().linvel.into();
-    let avg_dist = stats_res.run_time as f32 * stats_res.avg_speed;
-    stats_res.avg_speed = (avg_dist + velocity.length() * (time.delta_seconds_f64() as f32))
-        / (stats_res.run_time as f32 + time.delta_seconds_f64() as f32);
-
-    if velocity.length() != 0.0 {
-        println!("{}", velocity.length());
-    }
 }

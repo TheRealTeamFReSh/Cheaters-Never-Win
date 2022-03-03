@@ -6,12 +6,8 @@ use serde::Deserialize;
 use crate::interactables::{spawn_char, spawn_terminal};
 
 use super::platform;
-<<<<<<< Updated upstream
-use crate::{enemies, interactables, runner};
-=======
 use crate::cheat_codes::{shuffle_code_text, CheatCodeResource, CheatCodeKind};
 use crate::{enemies, runner};
->>>>>>> Stashed changes
 
 #[derive(Deserialize)]
 pub struct PlatformData {
@@ -55,11 +51,7 @@ pub struct Chunk {
     pub chunk_offset: f32,
     // ability dependency? optional?
     pub terminals: Vec<Vec2>,
-<<<<<<< Updated upstream
-    pub chars: Vec<CharTextData>,
-=======
     pub chars: Vec<CharData>,
->>>>>>> Stashed changes
 }
 
 pub fn spawn_chunk(

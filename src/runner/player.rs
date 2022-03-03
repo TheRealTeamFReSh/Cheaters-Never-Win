@@ -1,5 +1,5 @@
 use crate::enemies::Enemy;
-use crate::{camera::TwoDCameraComponent, physics, states::GameStates};
+use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
@@ -155,6 +155,7 @@ fn spawn_character(
 pub fn player_feet(
     mut intersection_events: EventReader<IntersectionEvent>,
     player_feet_query: Query<Entity, With<PlayerFeet>>,
+    platform_query: Query<Entity, With<platforms::platform::Platform>>,
     mut player_query: Query<&mut Player>,
 ) {
     for event in intersection_events.iter() {
@@ -163,60 +164,64 @@ pub fn player_feet(
 
         for feet_entity in player_feet_query.iter() {
             for mut player in player_query.iter_mut() {
-                // remove index 0 if there are 3 elements
-                if player.feet_touching_platforms.platforms.len() > 2 {
-                    player.feet_touching_platforms.platforms.remove(0);
-                }
+                for platform_entity in platform_query.iter() {
+                    // remove index 0 if there are 3 elements
+                    if player.feet_touching_platforms.platforms.len() > 2 {
+                        player.feet_touching_platforms.platforms.remove(0);
+                    }
 
-                if event.intersecting {
-                    if collider1_entity == feet_entity
-                        && !player
+                    if event.intersecting {
+                        if collider1_entity == feet_entity
+                            && !player
+                                .feet_touching_platforms
+                                .platforms
+                                .contains(&collider2_entity)
+                            && collider2_entity == platform_entity
+                        {
+                            player
+                                .feet_touching_platforms
+                                .platforms
+                                .push(collider2_entity);
+                        } else if collider2_entity == feet_entity
+                            && !player
+                                .feet_touching_platforms
+                                .platforms
+                                .contains(&collider1_entity)
+                            && collider1_entity == platform_entity
+                        {
+                            player
+                                .feet_touching_platforms
+                                .platforms
+                                .push(collider1_entity);
+                        }
+                    } else if collider1_entity == feet_entity {
+                        while player
                             .feet_touching_platforms
                             .platforms
                             .contains(&collider2_entity)
-                    {
-                        player
-                            .feet_touching_platforms
-                            .platforms
-                            .push(collider2_entity);
-                    } else if collider2_entity == feet_entity
-                        && !player
+                        {
+                            let index = player
+                                .feet_touching_platforms
+                                .platforms
+                                .iter()
+                                .position(|x| *x == collider2_entity)
+                                .unwrap();
+                            player.feet_touching_platforms.platforms.remove(index);
+                        }
+                    } else if collider2_entity == feet_entity {
+                        while player
                             .feet_touching_platforms
                             .platforms
                             .contains(&collider1_entity)
-                    {
-                        player
-                            .feet_touching_platforms
-                            .platforms
-                            .push(collider1_entity);
-                    }
-                } else if collider1_entity == feet_entity {
-                    while player
-                        .feet_touching_platforms
-                        .platforms
-                        .contains(&collider2_entity)
-                    {
-                        let index = player
-                            .feet_touching_platforms
-                            .platforms
-                            .iter()
-                            .position(|x| *x == collider2_entity)
-                            .unwrap();
-                        player.feet_touching_platforms.platforms.remove(index);
-                    }
-                } else if collider2_entity == feet_entity {
-                    while player
-                        .feet_touching_platforms
-                        .platforms
-                        .contains(&collider1_entity)
-                    {
-                        let index = player
-                            .feet_touching_platforms
-                            .platforms
-                            .iter()
-                            .position(|x| *x == collider1_entity)
-                            .unwrap();
-                        player.feet_touching_platforms.platforms.remove(index);
+                        {
+                            let index = player
+                                .feet_touching_platforms
+                                .platforms
+                                .iter()
+                                .position(|x| *x == collider1_entity)
+                                .unwrap();
+                            player.feet_touching_platforms.platforms.remove(index);
+                        }
                     }
                 }
             }

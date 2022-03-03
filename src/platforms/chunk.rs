@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 use rand::{seq::SliceRandom, Rng};
 use serde::Deserialize;
 
-use crate::interactables::{spawn_char, spawn_terminal};
+use crate::interactables::{spawn_char, spawn_terminal, InteractableComponent};
 
 use super::platform;
 use crate::cheat_codes::{shuffle_code_text, CheatCodeResource, CheatCodeKind};
@@ -37,13 +37,6 @@ pub struct ChunksResource {
 }
 
 #[derive(Deserialize)]
-pub struct CharTextData {
-    // TODO: this value should be randomed
-    pub value: char,
-    pub position: Vec2,
-}
-
-#[derive(Deserialize)]
 pub struct Chunk {
     pub platforms: Vec<PlatformData>,
     pub enemies: Vec<EnemyData>,
@@ -61,6 +54,7 @@ pub fn spawn_chunk(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
     texture_atlases: &mut Assets<TextureAtlas>,
+    cheat_codes: &CheatCodeResource,
 ) {
     for platform_data in chunk.platforms.iter() {
         platform::spawn_platform(
@@ -109,6 +103,7 @@ pub fn chunk_test_system(
     rapier_config: Res<RapierConfiguration>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     let chunk_to_spawn = chunks_resource.prelude_chunks.get(0);
 
@@ -120,6 +115,7 @@ pub fn chunk_test_system(
             &rapier_config,
             &asset_server,
             &mut texture_atlases,
+            &cheat_codes,
         );
     }
 }
@@ -130,6 +126,7 @@ pub fn generate_prelude_chunk(
     asset_server: Res<AssetServer>,
     mut chunks_resource: ResMut<ChunksResource>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     if chunks_resource.furthest_x <= 0.0 {
         let chunk_to_spawn = chunks_resource
@@ -144,6 +141,7 @@ pub fn generate_prelude_chunk(
             &rapier_config,
             &asset_server,
             &mut texture_atlases,
+            &cheat_codes,
         );
         chunks_resource.furthest_x = chunk_to_spawn.next_chunk_offset;
     }
@@ -156,6 +154,7 @@ pub fn generate_chunks(
     mut chunks_resource: ResMut<ChunksResource>,
     player_query: Query<(&runner::Player, &RigidBodyPositionComponent)>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    cheat_codes: ResMut<CheatCodeResource>,
 ) {
     assert!(chunks_resource.furthest_x >= 0.0);
 
@@ -187,6 +186,7 @@ pub fn generate_chunks(
                     &rapier_config,
                     &asset_server,
                     &mut texture_atlases,
+                    &cheat_codes,
                 );
 
                 chunks_resource.furthest_x += chunk_to_spawn.next_chunk_offset;
@@ -237,7 +237,7 @@ pub fn despawn_interactables(
     mut commands: Commands,
     rapier_config: Res<RapierConfiguration>,
     player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
-    interactable_query: Query<(Entity, &Transform), With<interactables::InteractableComponent>>,
+    interactable_query: Query<(Entity, &Transform), With<InteractableComponent>>,
 ) {
     for player_rb_pos in player_query.iter() {
         for (interactable_entity, interactable_transform) in interactable_query.iter() {

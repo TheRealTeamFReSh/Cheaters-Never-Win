@@ -450,14 +450,14 @@ pub fn player_collide_enemy(
 }
 
 fn show_terminal_toaster_notification(
-    mut player_query: Query<(&Transform, With<Player>)>,
+    player_query: Query<&Transform, With<Player>>,
     mut toast_writer: EventWriter<ShowToast>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
-    let right = keyboard_input.pressed(KeyCode::D);
-    let left = keyboard_input.pressed(KeyCode::A);
+    let right = keyboard_input.just_released(KeyCode::D);
+    let left = keyboard_input.just_released(KeyCode::A);
 
-    if let Some((player_transform, _)) = player_query.iter().next() {
+    if let Some(player_transform) = player_query.iter().next() {
         if (right || left)
             && player_transform.translation.x > 1150.
             && player_transform.translation.x <= 1300.

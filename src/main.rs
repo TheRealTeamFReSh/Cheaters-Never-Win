@@ -8,12 +8,16 @@ mod cheat_codes;
 mod console;
 mod enemies;
 mod interactables;
+mod main_menu;
+mod pause_menu;
 mod physics;
 mod platforms;
 mod runner;
 mod states;
+mod stats;
 mod tab_menu;
 mod toast;
+
 fn main() {
     App::new()
         .insert_resource(WindowDescriptor {
@@ -24,18 +28,21 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(cheat_codes::CheatCodeResource::new())
+        .add_plugin(main_menu::MainMenuPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugin(WorldInspectorPlugin::new())
         .add_plugin(tab_menu::TabMenuPlugin)
         .add_plugin(console::ConsolePlugin)
         .add_plugin(runner::RunnerPlugin)
+        .add_plugin(pause_menu::PauseMenuPlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugin(physics::PhysicsPlugin)
         .add_plugin(platforms::PlatformsPlugin)
         .add_plugin(enemies::EnemiesPlugin)
         .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
-        .add_state(states::GameStates::Main)
+        .add_state(states::GameStates::MainMenu)
+        .add_plugin(stats::GameStatsPlugin)
         .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)

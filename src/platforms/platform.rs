@@ -2,6 +2,9 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use serde::Deserialize;
 
+#[derive(Debug, Component)]
+pub struct Platform;
+
 #[derive(Deserialize, Debug, Hash, PartialEq, Eq, Clone)]
 pub enum PlatformKind {
     Platform1,
@@ -88,6 +91,7 @@ fn spawn_platform_1(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(Platform)
         .insert(Name::new("Platform 1"))
         .with_children(|parent| {
             parent.spawn_bundle(SpriteBundle {
@@ -128,6 +132,7 @@ fn spawn_platform_2(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(Platform)
         .insert(Name::new("Platform 2"))
         .with_children(|parent| {
             parent.spawn_bundle(SpriteBundle {
@@ -168,6 +173,7 @@ fn spawn_platform_3(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(Platform)
         .insert(Name::new("Platform 3"))
         .with_children(|parent| {
             parent.spawn_bundle(SpriteBundle {
@@ -208,6 +214,7 @@ fn spawn_platform_4(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(Platform)
         .insert(Name::new("Platform 4"))
         .with_children(|parent| {
             parent.spawn_bundle(SpriteBundle {
@@ -248,6 +255,7 @@ fn spawn_platform_5(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(Platform)
         .insert(Name::new("Platform 5"))
         .with_children(|parent| {
             parent.spawn_bundle(SpriteBundle {
@@ -288,6 +296,7 @@ fn spawn_platform_6(
             ..Default::default()
         })
         .insert(ColliderPositionSync::Discrete)
+        .insert(Platform)
         .insert(Name::new("Platform 6"))
         .with_children(|parent| {
             parent.spawn_bundle(SpriteBundle {

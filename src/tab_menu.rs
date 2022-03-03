@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use bevy_loading::{prelude::AssetsLoading, LoadingPlugin};
 
 use crate::{
-    camera::UICameraComponent,
     cheat_codes::{CheatCodeKind, CheatCodeResource},
     states::GameStates,
     stats::GameStatsResource,
@@ -104,15 +103,10 @@ fn build_ui(
     mut commands: Commands,
     assets: Res<TabMenuAssets>,
     window: Res<Windows>,
-    camera: Query<&Transform, With<UICameraComponent>>,
     cheat_codes_res: Res<CheatCodeResource>,
     stats_res: Res<GameStatsResource>,
 ) {
     let current_window = window.get_primary().unwrap();
-    let mut camera_pos = 0.0;
-    for transform in camera.iter() {
-        camera_pos = transform.translation.x;
-    }
 
     // ---------- UI COMPONENTS ----------//
     // root component
@@ -124,10 +118,6 @@ fn build_ui(
             ),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            position: Rect {
-                left: Val::Px(camera_pos),
-                ..Default::default()
-            },
             ..Default::default()
         },
         color: Color::rgba_u8(0, 0, 0, 150).into(),

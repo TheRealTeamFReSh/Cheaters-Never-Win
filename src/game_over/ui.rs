@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{camera::UICameraComponent, pause_menu::button::UIButton, stats::GameStatsResource};
+use crate::{pause_menu::button::UIButton, stats::GameStatsResource};
 
 #[derive(Component)]
 pub struct GameOverScreenComponent;
@@ -8,17 +8,12 @@ pub struct GameOverScreenComponent;
 pub fn build_ui(
     mut commands: Commands,
     window: Res<Windows>,
-    camera: Query<&Transform, With<UICameraComponent>>,
     stats_res: Res<GameStatsResource>,
     asset_server: Res<AssetServer>,
 ) {
     let font_handle = asset_server.load("fonts/VT323-Regular.ttf");
 
     let current_window = window.get_primary().unwrap();
-    let mut camera_pos = 0.0;
-    for transform in camera.iter() {
-        camera_pos = transform.translation.x;
-    }
 
     // UI comps
     let parent_component = NodeBundle {
@@ -30,10 +25,7 @@ pub fn build_ui(
             flex_direction: FlexDirection::ColumnReverse,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            position: Rect {
-                left: Val::Px(camera_pos),
-                ..Default::default()
-            },
+
             ..Default::default()
         },
         color: Color::rgba_u8(50, 2, 2, 200).into(),

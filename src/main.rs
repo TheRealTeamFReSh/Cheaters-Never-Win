@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_kira_audio::AudioPlugin;
 use bevy_rapier2d::prelude::*;
+
 use cheat_codes::CheatCodeResource;
 
 mod camera;
@@ -43,6 +45,7 @@ fn main() {
         .add_plugin(toast::ToastPlugin)
         .add_plugin(interactables::InteractablesPlugin)
         .add_plugin(letter_gutter::LetterGutterPlugin)
+        .add_plugin(AudioPlugin)
         .add_state(states::GameStates::MainMenu)
         .add_plugin(stats::GameStatsPlugin)
         .add_startup_system(camera::add_camera)

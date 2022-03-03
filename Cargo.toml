@@ -21,7 +21,7 @@ ron = "0.6.4"
 serde = "1.0.127"
 bevy_ninepatch = "0.6.0"
 bevy_tweening = "0.3.2"
-
+bevy_kira_audio = { version = "0.8.0", features = ["ogg"]}
 
 [features]
 default = ["bevy/dynamic"] # to make the wasm github action work with the --no-default-feature flag

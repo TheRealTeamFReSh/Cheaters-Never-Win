@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::interactables::{spawn_char, spawn_terminal, InteractableComponent};
 
 use super::platform;
-use crate::cheat_codes::{shuffle_code_text, CheatCodeResource, CheatCodeKind};
+use crate::cheat_codes::{shuffle_code_text, CheatCodeResource, CheatCodeKind, CheatCodeRarity};
 use crate::{enemies, runner};
 
 #[derive(Deserialize)]
@@ -80,12 +80,16 @@ pub fn spawn_chunk(
         spawn_terminal(commands, asset_server, texture_atlases, terminal_position)
     }
 
-    let code_kind = cheat_codes.get_next_code();
-    println!("code kind: {:?}", code_kind);
-
     for ch_data in &chunk.chars {
         let code = cheat_codes.codes.get(&ch_data.cheat_kind).unwrap();
-        let shuffled_text = shuffle_code_text(&code.text, vec![2, 3, 1, 0]);
+        let mut shuffled_text = "";
+
+        let shuffled_text = match code.rarity {
+            CheatCodeRarity::Mandatory => shuffle_code_text(&code.text, vec![2, 3, 1, 0]),
+            CheatCodeRarity::Common => shuffle_code_text(&code.text, vec![2, 3, 1, 0]),
+            CheatCodeRarity::Rare => shuffle_code_text(&code.text, vec![2, 5, 3, 1, 0, 4]),
+            CheatCodeRarity::Legendary => shuffle_code_text(&code.text, vec![4, 2, 6, 3, 1, 7, 0, 5]),
+        };
 
         for n in 0..ch_data.positions.len() {
             let ch_position = &ch_data.positions[n];

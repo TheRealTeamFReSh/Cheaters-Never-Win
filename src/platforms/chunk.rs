@@ -6,7 +6,7 @@ use serde::Deserialize;
 use crate::interactables::{spawn_char, spawn_terminal};
 
 use super::platform;
-use crate::{enemies, runner};
+use crate::{enemies, interactables, runner};
 
 #[derive(Deserialize)]
 pub struct PlatformData {
@@ -179,6 +179,63 @@ pub fn generate_chunks(
                 );
 
                 chunks_resource.furthest_x += chunk_to_spawn.next_chunk_offset;
+            }
+        }
+    }
+}
+
+pub fn despawn_platforms(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
+    platform_query: Query<(Entity, &RigidBodyPositionComponent), With<platform::Platform>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (platform_entity, platform_rb_pos) in platform_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - (platform_rb_pos.position.translation.x * rapier_config.scale)
+                > 10000.0
+            {
+                info!("despawning platform");
+                commands.entity(platform_entity).despawn_recursive();
+            }
+        }
+    }
+}
+
+pub fn despawn_enemies(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
+    enemy_query: Query<(Entity, &RigidBodyPositionComponent), With<enemies::Enemy>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (enemy_entity, enemy_rb_pos) in enemy_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - (enemy_rb_pos.position.translation.x * rapier_config.scale)
+                > 10000.0
+            {
+                info!("despawning enemy");
+                commands.entity(enemy_entity).despawn_recursive();
+            }
+        }
+    }
+}
+
+pub fn despawn_interactables(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<runner::Player>>,
+    interactable_query: Query<(Entity, &Transform), With<interactables::InteractableComponent>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (interactable_entity, interactable_transform) in interactable_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - interactable_transform.translation.x
+                > 10000.0
+            {
+                info!("despawning interactable");
+                commands.entity(interactable_entity).despawn_recursive();
             }
         }
     }

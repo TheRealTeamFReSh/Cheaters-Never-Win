@@ -20,7 +20,10 @@ impl Plugin for PlatformsPlugin {
         )
         .add_system_set(
             SystemSet::on_update(GameStates::Main)
-                .with_system(chunk::generate_chunks.after("generate_prelude_chunk")),
+                .with_system(chunk::generate_chunks.after("generate_prelude_chunk"))
+                .with_system(chunk::despawn_platforms.after("generate_prelude_chunk"))
+                .with_system(chunk::despawn_enemies.after("generate_prelude_chunk"))
+                .with_system(chunk::despawn_interactables.after("generate_prelude_chunk")),
         );
     }
 }

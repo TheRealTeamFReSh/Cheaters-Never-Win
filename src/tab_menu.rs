@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use bevy::prelude::*;
 use bevy_loading::{prelude::AssetsLoading, LoadingPlugin};
@@ -8,6 +8,7 @@ use crate::{
     cheat_codes::{CheatCodeKind, CheatCodeResource},
     states::GameStates,
     stats::GameStatsResource,
+    toast::ShowToast,
 };
 
 pub struct TabMenuPlugin;
@@ -20,7 +21,9 @@ impl Plugin for TabMenuPlugin {
         });
 
         app.add_system_set(
-            SystemSet::on_enter(GameStates::TabMenuLoading).with_system(load_assets),
+            SystemSet::on_enter(GameStates::TabMenuLoading)
+                .with_system(load_assets)
+                .with_system(remind_second_page),
         );
 
         // open menu trigger
@@ -71,6 +74,13 @@ pub struct TabMenuAssets {
     background: Handle<Image>,
     font: Handle<Font>,
     icons: HashMap<CheatCodeKind, Handle<Image>>,
+}
+
+fn remind_second_page(mut ev_writer: EventWriter<ShowToast>) {
+    ev_writer.send(ShowToast {
+        value: "Press TAB to show the second page".to_string(),
+        duration: Duration::from_secs(5),
+    });
 }
 
 fn load_assets(

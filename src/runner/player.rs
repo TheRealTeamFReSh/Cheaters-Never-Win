@@ -42,8 +42,8 @@ fn spawn_character(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     rapier_config: Res<RapierConfiguration>,
 ) {
-    let texture_handle = asset_server.load("gabe-idle-run.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(24.0, 24.0), 7, 1);
+    let texture_handle = asset_server.load("player_run.png");
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 1);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
@@ -51,14 +51,14 @@ fn spawn_character(
         deceleration: 0.2,
     };
 
-    let collider_size_hx = 24.0 * 2.0 / rapier_config.scale / 2.0;
-    let collider_size_hy = 24.0 * 2.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 24.0 / rapier_config.scale / 2.0;
+    let collider_size_hy = 50.0 / rapier_config.scale / 2.0;
 
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle,
             transform: Transform {
-                scale: Vec3::new(2.0, 2.0, 1.0),
+                //scale: Vec3::new(2.0, 2.0, 1.0),
                 translation: Vec3::new(0.0, 0.0, 100.0),
                 ..Default::default()
             },

@@ -1,5 +1,5 @@
 use crate::enemies::Enemy;
-use crate::{camera::TwoDCameraComponent, physics, states::GameStates};
+use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_rapier2d::prelude::*;
 
@@ -33,13 +33,21 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(CollectedChars { values: Vec::new() })
             .insert_resource(PlayerAnimationResource {
-                run: AnimationData {
+                run_right: AnimationData {
                     length: 8,
                     offset: 0,
                 },
                 jump: AnimationData {
                     length: 4,
                     offset: 8,
+                },
+                idle: AnimationData {
+                    length: 4,
+                    offset: 16,
+                },
+                run_left: AnimationData {
+                    length: 8,
+                    offset: 24,
                 },
             })
             .add_system_set(
@@ -49,13 +57,18 @@ impl Plugin for PlayerPlugin {
             .add_event::<GameOverEvent>()
             .add_system_set(
                 SystemSet::on_update(GameStates::Main)
+                    .with_system(player_feet)
+                    .label("player_feet"),
+            )
+            .add_system_set(
+                SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)
                     .with_system(animate_sprite)
                     .with_system(move_character)
+                    .after("player_feet")
                     .with_system(detect_char_interactable)
                     .with_system(player_collide_enemy)
-                    .with_system(player_fall_damage)
-                    .with_system(player_feet),
+                    .with_system(player_fall_damage),
             );
     }
 }
@@ -68,7 +81,7 @@ fn spawn_character(
     rapier_config: Res<RapierConfiguration>,
 ) {
     let texture_handle = asset_server.load("player.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 2);
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 4);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
@@ -142,41 +155,74 @@ fn spawn_character(
 pub fn player_feet(
     mut intersection_events: EventReader<IntersectionEvent>,
     player_feet_query: Query<Entity, With<PlayerFeet>>,
+    platform_query: Query<Entity, With<platforms::platform::Platform>>,
     mut player_query: Query<&mut Player>,
 ) {
     for event in intersection_events.iter() {
         let collider1_entity = event.collider1.entity();
         let collider2_entity = event.collider2.entity();
+
         for feet_entity in player_feet_query.iter() {
             for mut player in player_query.iter_mut() {
-                if event.intersecting {
-                    if collider1_entity == feet_entity {
-                        player
-                            .feet_touching_platforms
-                            .platforms
-                            .push(collider2_entity);
-                    } else if collider2_entity == feet_entity {
-                        player
-                            .feet_touching_platforms
-                            .platforms
-                            .push(collider1_entity);
+                for platform_entity in platform_query.iter() {
+                    // remove index 0 if there are 3 elements
+                    if player.feet_touching_platforms.platforms.len() > 2 {
+                        player.feet_touching_platforms.platforms.remove(0);
                     }
-                } else if collider1_entity == feet_entity {
-                    let index = player
-                        .feet_touching_platforms
-                        .platforms
-                        .iter()
-                        .position(|x| *x == collider2_entity)
-                        .unwrap();
-                    player.feet_touching_platforms.platforms.remove(index);
-                } else if collider2_entity == feet_entity {
-                    let index = player
-                        .feet_touching_platforms
-                        .platforms
-                        .iter()
-                        .position(|x| *x == collider1_entity)
-                        .unwrap();
-                    player.feet_touching_platforms.platforms.remove(index);
+
+                    if event.intersecting {
+                        if collider1_entity == feet_entity
+                            && !player
+                                .feet_touching_platforms
+                                .platforms
+                                .contains(&collider2_entity)
+                            && collider2_entity == platform_entity
+                        {
+                            player
+                                .feet_touching_platforms
+                                .platforms
+                                .push(collider2_entity);
+                        } else if collider2_entity == feet_entity
+                            && !player
+                                .feet_touching_platforms
+                                .platforms
+                                .contains(&collider1_entity)
+                            && collider1_entity == platform_entity
+                        {
+                            player
+                                .feet_touching_platforms
+                                .platforms
+                                .push(collider1_entity);
+                        }
+                    } else if collider1_entity == feet_entity {
+                        while player
+                            .feet_touching_platforms
+                            .platforms
+                            .contains(&collider2_entity)
+                        {
+                            let index = player
+                                .feet_touching_platforms
+                                .platforms
+                                .iter()
+                                .position(|x| *x == collider2_entity)
+                                .unwrap();
+                            player.feet_touching_platforms.platforms.remove(index);
+                        }
+                    } else if collider2_entity == feet_entity {
+                        while player
+                            .feet_touching_platforms
+                            .platforms
+                            .contains(&collider1_entity)
+                        {
+                            let index = player
+                                .feet_touching_platforms
+                                .platforms
+                                .iter()
+                                .position(|x| *x == collider1_entity)
+                                .unwrap();
+                            player.feet_touching_platforms.platforms.remove(index);
+                        }
+                    }
                 }
             }
         }
@@ -184,8 +230,10 @@ pub fn player_feet(
 }
 
 pub struct PlayerAnimationResource {
-    pub run: AnimationData,
+    pub run_right: AnimationData,
+    pub run_left: AnimationData,
     pub jump: AnimationData,
+    pub idle: AnimationData,
 }
 
 pub struct AnimationData {
@@ -196,10 +244,10 @@ pub struct AnimationData {
 pub fn animate_sprite(
     time: Res<Time>,
     player_animation_resource: Res<PlayerAnimationResource>,
-    player_query: Query<&Player>,
+    player_query: Query<(&Player, &RigidBodyVelocityComponent)>,
     mut query: Query<(&mut PlayerAnimationTimer, &mut TextureAtlasSprite)>,
 ) {
-    for player in player_query.iter() {
+    for (player, rb_vel) in player_query.iter() {
         for (mut timer, mut sprite) in query.iter_mut() {
             timer.0.tick(time.delta());
             if timer.0.just_finished() {
@@ -220,11 +268,40 @@ pub fn animate_sprite(
                         sprite.index += 1;
                     }
                 } else {
-                    // player is running
-                    if sprite.index >= player_animation_resource.run.length {
-                        sprite.index = 0;
+                    if rb_vel.linvel.x > 0.0 {
+                        // player is running right
+                        if sprite.index >= player_animation_resource.run_right.length {
+                            sprite.index = 0;
+                        } else {
+                            sprite.index =
+                                (sprite.index + 1) % player_animation_resource.run_right.length;
+                        }
+                    } else if rb_vel.linvel.x < 0.0 {
+                        //player is running left
+                        if sprite.index < player_animation_resource.run_left.offset
+                            || sprite.index
+                                >= (player_animation_resource.run_left.length
+                                    + player_animation_resource.run_left.offset)
+                        {
+                            sprite.index = player_animation_resource.run_left.offset;
+                        } else {
+                            sprite.index = ((sprite.index + 1)
+                                % player_animation_resource.run_left.length)
+                                + player_animation_resource.run_left.offset;
+                        }
                     } else {
-                        sprite.index = (sprite.index + 1) % player_animation_resource.run.length;
+                        //player is idling
+                        if sprite.index < player_animation_resource.idle.offset
+                            || sprite.index
+                                >= (player_animation_resource.idle.length
+                                    + player_animation_resource.idle.offset)
+                        {
+                            sprite.index = player_animation_resource.idle.offset;
+                        } else {
+                            sprite.index = ((sprite.index + 1)
+                                % player_animation_resource.idle.length)
+                                + player_animation_resource.idle.offset;
+                        }
                     }
                 }
             }

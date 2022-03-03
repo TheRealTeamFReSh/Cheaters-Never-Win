@@ -4,7 +4,7 @@ use ron::de::from_bytes;
 pub struct PlatformsPlugin;
 
 mod chunk;
-mod platform;
+pub mod platform;
 
 impl Plugin for PlatformsPlugin {
     fn build(&self, app: &mut App) {

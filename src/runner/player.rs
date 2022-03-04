@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use crate::enemies::Enemy;
-use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates};
+use crate::{camera::TwoDCameraComponent, effects, physics, platforms, states::GameStates};
+use bevy::math::Vec3Swizzles;
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_kira_audio::{Audio, AudioChannel};
 use bevy_rapier2d::prelude::*;
@@ -493,19 +494,32 @@ pub fn player_fall_damage(
 pub fn player_collide_enemy(
     mut commands: Commands,
     mut player_query: Query<(Entity, &mut Player)>,
-    enemy_query: Query<Entity, With<Enemy>>,
+    enemy_query: Query<(Entity, &Transform), With<Enemy>>,
     mut contact_events: EventReader<ContactEvent>,
     mut game_over_event: EventWriter<GameOverEvent>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     for contact_event in contact_events.iter() {
         if let ContactEvent::Started(h1, h2) = contact_event {
             for (player_entity, mut player) in player_query.iter_mut() {
-                for enemy_entity in enemy_query.iter() {
+                for (enemy_entity, enemy_transform) in enemy_query.iter() {
                     if h1.entity() == player_entity && h2.entity() == enemy_entity
                         || h2.entity() == player_entity && h1.entity() == enemy_entity
                     {
                         player.lives -= 1;
                         commands.entity(enemy_entity).despawn();
+                        // spawn explostion
+                        effects::spawn_explosion(
+                            enemy_transform.translation.xy(),
+                            &mut commands,
+                            &asset_server,
+                            &mut texture_atlases,
+                        );
+                        let audio_channel = AudioChannel::new("explosion-channel".to_owned());
+                        audio.set_volume_in_channel(0.6, &audio_channel);
+                        audio.play_in_channel(asset_server.load("explosion.ogg"), &audio_channel);
                         if player.lives <= 0 {
                             game_over_event.send(GameOverEvent);
                         }

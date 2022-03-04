@@ -70,6 +70,7 @@ pub struct CheatCode {
     pub text: String,
     pub dependencies: Vec<CheatCodeKind>,
     pub image: String,
+    pub help_text: String,
 }
 
 impl CheatCode {
@@ -79,6 +80,7 @@ impl CheatCode {
         text: &str,
         dependencies: Vec<CheatCodeKind>,
         image: String,
+        help_text: String,
     ) -> Self {
         Self {
             kind,
@@ -86,6 +88,7 @@ impl CheatCode {
             text: text.to_string(),
             dependencies,
             image,
+            help_text,
         }
     }
 }
@@ -177,6 +180,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Mandatory,
             vec![],
             "jump.png",
+            "Press space to jump",
         );
 
         // Common
@@ -186,6 +190,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![],
             "crouch.png",
+            "Press Ctrl to crouch",
         );
         insert_cheat(
             &mut codes,
@@ -193,6 +198,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![],
             "attack.png",
+            "Press Enter to Attack",
         );
         insert_cheat(
             &mut codes,
@@ -200,6 +206,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![CheatCodeKind::Attack],
             "attack_dmg_boost.png",
+            "Damage boost applied",
         );
         insert_cheat(
             &mut codes,
@@ -207,6 +214,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![CheatCodeKind::Attack],
             "attack_fr_boost.png",
+            "Better fire rate",
         );
         insert_cheat(
             &mut codes,
@@ -214,6 +222,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![],
             "move_left.png",
+            "Press 'A' to move left",
         );
         insert_cheat(
             &mut codes,
@@ -221,6 +230,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![],
             "speed.png",
+            "Speed increase lvl. 1",
         );
         insert_cheat(
             &mut codes,
@@ -228,6 +238,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![CheatCodeKind::SpeedBoost1],
             "speed.png",
+            "Speed increase lvl. 2",
         );
         insert_cheat(
             &mut codes,
@@ -235,6 +246,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![CheatCodeKind::SpeedBoost1, CheatCodeKind::SpeedBoost2],
             "speed.png",
+            "Speed increase lvl. 3",
         );
         insert_cheat(
             &mut codes,
@@ -242,6 +254,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![],
             "armor.png",
+            "Better armor",
         );
         insert_cheat(
             &mut codes,
@@ -249,6 +262,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Common,
             vec![],
             "dash.png",
+            "Double tap 'D' to dash",
         );
 
         // Rare
@@ -258,6 +272,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Rare,
             vec![CheatCodeKind::Jump],
             "double_jump.png",
+            "Press space in air to jump",
         );
         insert_cheat(
             &mut codes,
@@ -269,6 +284,7 @@ impl CheatCodeResource {
                 CheatCodeKind::SpeedBoost3,
             ],
             "speed.png",
+            "Speed increase lvl. 4",
         );
         insert_cheat(
             &mut codes,
@@ -281,6 +297,7 @@ impl CheatCodeResource {
                 CheatCodeKind::SpeedBoost4,
             ],
             "speed.png",
+            "Speed increase lvl. 5",
         );
         insert_cheat(
             &mut codes,
@@ -288,6 +305,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Rare,
             vec![CheatCodeKind::Jump],
             "shield.png",
+            "Shield activated",
         );
 
         // Legendary
@@ -297,6 +315,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Legendary,
             vec![],
             "extra_life.png",
+            "Got one extra life",
         );
         insert_cheat(
             &mut codes,
@@ -304,6 +323,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Legendary,
             vec![CheatCodeKind::Armor, CheatCodeKind::Shield],
             "temp_invincibility.png",
+            "Temporary invincible",
         );
         insert_cheat(
             &mut codes,
@@ -311,6 +331,7 @@ impl CheatCodeResource {
             CheatCodeRarity::Legendary,
             vec![CheatCodeKind::Jump, CheatCodeKind::DoubleJump],
             "fly.png",
+            "Hold space to fly",
         );
 
         Self {
@@ -326,6 +347,7 @@ fn insert_cheat(
     rarity: CheatCodeRarity,
     dependencies: Vec<CheatCodeKind>,
     image_path: &str,
+    help_text: &str,
 ) {
     codes.insert(
         kind,
@@ -335,6 +357,7 @@ fn insert_cheat(
             &generate_random_code(rarity),
             dependencies,
             image_path.to_string(),
+            help_text.to_string(),
         ),
     );
 }

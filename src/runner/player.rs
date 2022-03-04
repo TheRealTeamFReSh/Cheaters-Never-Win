@@ -586,12 +586,14 @@ pub struct GameOverEvent;
 pub fn player_fall_damage(
     mut player_query: Query<(&mut Player, &Transform)>,
     mut game_over_event: EventWriter<GameOverEvent>,
+    mut game_state: ResMut<State<GameStates>>,
 ) {
     for (mut player, transform) in player_query.iter_mut() {
         if transform.translation.y < -400.0 {
             player.lives = 0;
             game_over_event.send(GameOverEvent);
-            info!("Fell down hole")
+            info!("Fell down hole");
+            game_state.push(GameStates::GameOver).unwrap();
         }
     }
 }

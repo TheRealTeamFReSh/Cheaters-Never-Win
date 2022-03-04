@@ -67,7 +67,7 @@ fn spawn_platform_1(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_size_hx = 160.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 158.0 / rapier_config.scale / 2.0;
     let collider_size_hy = 34.0 / rapier_config.scale / 2.0;
 
     commands
@@ -108,7 +108,7 @@ fn spawn_platform_2(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_size_hx = 64.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 62.0 / rapier_config.scale / 2.0;
     let collider_size_hy = 34.0 / rapier_config.scale / 2.0;
 
     commands
@@ -149,7 +149,7 @@ fn spawn_platform_3(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_size_hx = 64.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 62.0 / rapier_config.scale / 2.0;
     let collider_size_hy = 34.0 / rapier_config.scale / 2.0;
 
     commands
@@ -190,7 +190,7 @@ fn spawn_platform_4(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_size_hx = 85.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 83.0 / rapier_config.scale / 2.0;
     let collider_size_hy = 34.0 / rapier_config.scale / 2.0;
 
     commands
@@ -231,7 +231,7 @@ fn spawn_platform_5(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_size_hx = 85.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 83.0 / rapier_config.scale / 2.0;
     let collider_size_hy = 87.0 / rapier_config.scale / 2.0;
 
     commands
@@ -272,7 +272,7 @@ fn spawn_platform_6(
     rapier_config: &RapierConfiguration,
     asset_server: &AssetServer,
 ) {
-    let collider_size_hx = 137.0 / rapier_config.scale / 2.0;
+    let collider_size_hx = 135.0 / rapier_config.scale / 2.0;
     let collider_size_hy = 87.0 / rapier_config.scale / 2.0;
 
     commands

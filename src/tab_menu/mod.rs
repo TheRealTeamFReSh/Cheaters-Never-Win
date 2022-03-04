@@ -147,7 +147,7 @@ fn load_assets(
     let second_page = asset_server.load("open_book_2.png");
     loading.add(&second_page);
 
-    let font = asset_server.load("fonts/OldLondon.ttf");
+    let font = asset_server.load("fonts/SpaceMadness.ttf");
     loading.add(&font);
 
     let font_2 = asset_server.load("fonts/VT323-Regular.ttf");

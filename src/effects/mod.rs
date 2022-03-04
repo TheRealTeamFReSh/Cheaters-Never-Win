@@ -1,6 +1,5 @@
 use crate::states::GameStates;
 use bevy::prelude::*;
-use bevy_rapier2d::physics::RapierConfiguration;
 pub struct EffectsPlugin;
 
 impl Plugin for EffectsPlugin {

@@ -1,8 +1,11 @@
 use bevy::prelude::*;
 mod backgroundlayer;
+mod lives_counter;
 mod player;
 
 use std::collections::HashMap;
+
+use crate::states::GameStates;
 
 pub use self::player::Player;
 
@@ -12,6 +15,17 @@ impl Plugin for RunnerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(backgroundlayer::BackgroundLayerPlugin)
             .add_plugin(player::PlayerPlugin);
+
+        app.add_system_set(
+            SystemSet::on_enter(GameStates::Main)
+                .with_system(lives_counter::build_ui)
+                .label("lives_counter_build"),
+        );
+        app.add_system_set(
+            SystemSet::on_update(GameStates::Main)
+                .with_system(lives_counter::update_counter)
+                .after("lives_counter_build"),
+        );
     }
 }
 

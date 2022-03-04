@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_rapier2d::na::DimNameDiff;
 
 use super::ConsoleAssets;
 

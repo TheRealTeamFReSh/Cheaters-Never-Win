@@ -80,17 +80,16 @@ pub fn is_valid_cheat(
 
     if let Some((_, cheat)) = code {
         for ch in cheat.text.chars() {
-            let index = collected_chars
-                .values
-                .iter()
-                .position(|val| *val == ch)
-                .unwrap();
-            collected_chars.values.remove(index);
+            let index_opt = collected_chars.values.iter().position(|val| *val == ch);
 
-            // Update values map
-            let char_entry = collected_chars.values_map.get(&ch);
-            if let Some(_count) = char_entry {
-                *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+            if let Some(index) = index_opt {
+                collected_chars.values.remove(index);
+
+                // Update values map
+                let char_entry = collected_chars.values_map.get(&ch);
+                if let Some(_count) = char_entry {
+                    *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+                }
             }
         }
         return true;

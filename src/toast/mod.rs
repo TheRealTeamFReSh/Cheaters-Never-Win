@@ -7,7 +7,8 @@ use bevy_tweening::{
     TweeningType,
 };
 
-use crate::cheat_codes::CheatCodeRarity;
+use crate::cheat_codes::{CheatCodeResource};
+use crate::runner::CollectedChars;
 
 pub struct ShowToast {
     pub value: String,
@@ -154,16 +155,29 @@ fn update_content(
     }
 }
 
-fn test(keyboard: Res<Input<KeyCode>>, mut toast_writer: EventWriter<ShowToast>) {
+fn test(
+    keyboard: Res<Input<KeyCode>>,
+    mut toast_writer: EventWriter<ShowToast>,
+    collected_chars: ResMut<CollectedChars>,
+    cheat_codes: ResMut<CheatCodeResource>,
+) {
     if keyboard.just_pressed(KeyCode::T) && keyboard.pressed(KeyCode::LControl) {
-        let mut value = String::from("Random code: ");
-        value.push_str(&crate::cheat_codes::generate_random_code(
-            CheatCodeRarity::Legendary,
-        ));
+      for (kind, code) in &cheat_codes.codes {
+        for i in 0..code.text.len() {
+          let ch = &code.text.chars().nth(i).unwrap();
 
-        toast_writer.send(ShowToast {
-            value,
-            duration: Duration::from_secs(2),
-        });
+          if !collected_chars.values.contains(ch) {
+            break;
+          }
+
+          if i == code.text.len() - 1 {
+            let value = format!("[{:?}]: {}", kind, code.text);
+            toast_writer.send(ShowToast {
+                value,
+                duration: Duration::from_secs(5),
+            });
+          }
+        }
+      }
     }
 }

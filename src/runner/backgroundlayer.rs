@@ -5,6 +5,7 @@ use bevy_rapier2d::prelude::*;
 
 const BACKGROUND_SPRITE_WIDTH: f32 = 816.;
 const BACKGROUND_SPRITE_HEIGHT: f32 = 480.;
+#[allow(dead_code)]
 const PLAYER_SPRITE_WIDTH: f32 = 168.;
 // TODO: remove magic number
 const CAMERA_OFFSET_X: f32 = 1060.;
@@ -88,7 +89,6 @@ fn update_layers(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     camera: Query<&Transform, With<Player>>,
-    mut query: Query<(Entity, &Transform, &BackgroundLayer, Without<Player>)>,
     mut background_resource: ResMut<BackgroundResource>,
 ) {
     for transform in camera.iter() {

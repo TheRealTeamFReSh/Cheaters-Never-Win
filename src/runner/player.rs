@@ -22,6 +22,10 @@ pub struct Player {
     pub lives: i32,
     pub feet_touching_platforms: FeetTouchingPlatforms,
     pub jump_count: u8,
+    pub dash_input_timer: Timer,
+    pub dash_cooldown_timer: Timer,
+    pub dash_input_count: u8,
+    pub is_dashing: bool,
 }
 
 #[derive(Debug)]
@@ -110,6 +114,10 @@ fn spawn_character(
         deceleration: 0.1,
         feet_touching_platforms: FeetTouchingPlatforms { platforms: vec![] },
         jump_count: 0,
+        dash_input_timer: Timer::from_seconds(0.25, false),
+        dash_cooldown_timer: Timer::from_seconds(1.5, false),
+        dash_input_count: 1,
+        is_dashing: false,
     };
 
     let collider_size_hx = 30.0 / rapier_config.scale / 2.0;
@@ -267,18 +275,41 @@ pub struct AnimationData {
 pub fn animate_sprite(
     time: Res<Time>,
     mut player_animation_resource: ResMut<PlayerAnimationResource>,
-    player_query: Query<(&Player, &RigidBodyVelocityComponent)>,
+    mut player_query: Query<(&mut Player, &RigidBodyVelocityComponent)>,
     mut query: Query<(&mut PlayerAnimationTimer, &mut TextureAtlasSprite)>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
     rapier_config: Res<RapierConfiguration>,
 ) {
-    for (player, rb_vel) in player_query.iter() {
+    for (mut player, rb_vel) in player_query.iter_mut() {
         for (mut timer, mut sprite) in query.iter_mut() {
             timer.0.tick(time.delta());
             if timer.0.just_finished() {
-                // is the player jumping
-                if player.feet_touching_platforms.platforms.is_empty() {
+                if player.is_dashing {
+                    if sprite.index
+                        == player_animation_resource.dash_attack.offset
+                            + player_animation_resource.dash_attack.length
+                            - 1
+                    {
+                        player.is_dashing = false;
+                    }
+                    if sprite.index < player_animation_resource.dash_attack.offset
+                        || sprite.index
+                            >= (player_animation_resource.dash_attack.length
+                                + player_animation_resource.dash_attack.offset)
+                    {
+                        sprite.index = player_animation_resource.dash_attack.offset;
+                        let audio_channel = AudioChannel::new("ability-channel".to_owned());
+                        audio.set_volume_in_channel(5.0, &audio_channel);
+                        audio.play_in_channel(asset_server.load("dash.ogg"), &audio_channel);
+                    } else if sprite.index
+                        < (player_animation_resource.dash_attack.length
+                            + player_animation_resource.dash_attack.offset)
+                            - 1
+                    {
+                        sprite.index += 1;
+                    }
+                } else if player.feet_touching_platforms.platforms.is_empty() {
                     // player is jumping
                     if sprite.index < player_animation_resource.jump.offset
                         || sprite.index
@@ -391,6 +422,7 @@ fn move_character(
     cheat_codes: ResMut<CheatCodeResource>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    time: Res<Time>,
 ) {
     for (mut player, mut rb_vel, rb_mprops) in query.iter_mut() {
         // update acceleration value
@@ -411,6 +443,7 @@ fn move_character(
         let _up = keyboard_input.pressed(KeyCode::W);
         let _down = keyboard_input.pressed(KeyCode::S);
         let right = keyboard_input.pressed(KeyCode::D);
+        let dash = keyboard_input.just_released(KeyCode::D);
 
         let jump = cheat_codes.is_code_activated(&CheatCodeKind::Jump)
             && keyboard_input.just_released(KeyCode::Space)
@@ -423,19 +456,45 @@ fn move_character(
 
         let x_axis = -(left as i8) + right as i8;
 
-        if x_axis != 0 {
-            rb_vel.linvel.x += player.acceleration * (x_axis as f32) * rapier_config.scale;
-            if rb_vel.linvel.x.abs() > player.speed * rapier_config.scale {
-                rb_vel.linvel.x =
-                    (rb_vel.linvel.x / rb_vel.linvel.x.abs()) * player.speed * rapier_config.scale;
+        if dash && cheat_codes.is_code_activated(&CheatCodeKind::Dash) {
+            if player.dash_input_count == 0 {
+                player.dash_input_count = 1;
+                player.dash_input_timer.reset();
+            } else if player.dash_input_count == 1 && player.dash_cooldown_timer.finished() {
+                rb_vel.apply_impulse(rb_mprops, Vec2::new(1000.0, 0.0).into());
+                player.is_dashing = true;
+                player.dash_cooldown_timer.reset()
             }
-        } else if rb_vel.linvel.x.abs() > 0.4 {
-            // decelerate
-            rb_vel.linvel.x -= player.deceleration
-                * (rb_vel.linvel.x / rb_vel.linvel.x.abs())
-                * rapier_config.scale;
+        }
+
+        if player.dash_input_count == 1 {
+            player.dash_input_timer.tick(time.delta());
+            if player.dash_input_timer.just_finished() {
+                player.dash_input_count = 0;
+            }
+        }
+        if !player.is_dashing {
+            //decrease dash cooldown
+            player.dash_cooldown_timer.tick(time.delta());
+
+            if x_axis != 0 {
+                rb_vel.linvel.x += player.acceleration * (x_axis as f32) * rapier_config.scale;
+                if rb_vel.linvel.x.abs() > player.speed * rapier_config.scale {
+                    rb_vel.linvel.x = (rb_vel.linvel.x / rb_vel.linvel.x.abs())
+                        * player.speed
+                        * rapier_config.scale;
+                }
+            } else if rb_vel.linvel.x.abs() > 0.4 {
+                // decelerate
+                rb_vel.linvel.x -= player.deceleration
+                    * (rb_vel.linvel.x / rb_vel.linvel.x.abs())
+                    * rapier_config.scale;
+            } else {
+                rb_vel.linvel.x = 0.0;
+            }
         } else {
-            rb_vel.linvel.x = 0.0;
+            rb_vel.linvel.y = 0.0;
+            rb_vel.linvel.x += player.acceleration * 2.0;
         }
 
         if jump {
@@ -554,7 +613,9 @@ pub fn player_collide_enemy(
                     if h1.entity() == player_entity && h2.entity() == enemy_entity
                         || h2.entity() == player_entity && h1.entity() == enemy_entity
                     {
-                        player.lives -= 1;
+                        if !player.is_dashing {
+                            player.lives -= 1;
+                        }
                         commands.entity(enemy_entity).despawn();
                         // spawn explostion
                         effects::spawn_explosion(

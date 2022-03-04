@@ -73,7 +73,7 @@ fn spawn_slime(
             shape: ColliderShape::ball(collider_radius).into(),
             material: ColliderMaterial {
                 friction: 0.5,
-                restitution: 0.5,
+                restitution: 0.2,
                 ..Default::default()
             }
             .into(),

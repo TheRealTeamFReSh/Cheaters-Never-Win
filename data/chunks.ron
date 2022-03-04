@@ -243,6 +243,143 @@
 			next_chunk_offset: 576.0,
 			chunk_offset: 32.0,
 		),
+		(
+			platforms: [
+				(
+					platform_kind: Platform3,
+					position: (0.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (224.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (288.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (352.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (464.0, -290.0),
+				),
+			],
+			enemies: [
+				(
+					enemy_kind: Slime,
+					position: (300.0, -150.0),
+				),
+			],
+			terminals: [
+			],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+					],
+					is_random: true,
+				),
+			],
+			next_chunk_offset: 576.0,
+			chunk_offset: 32.0,
+		),
+		(
+			platforms: [
+				(
+					platform_kind: Platform3,
+					position: (0.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (224.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (288.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (352.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (464.0, -290.0),
+				),
+			],
+			enemies: [
+			],
+			terminals: [
+			],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+						(200.0, -240.0),
+					],
+					is_random: true,
+				),
+			],
+			next_chunk_offset: 576.0,
+			chunk_offset: 32.0,
+		),
+		(
+			platforms: [
+				(
+					platform_kind: Platform3,
+					position: (0.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (224.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (288.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (352.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (464.0, -290.0),
+				),
+			],
+			enemies: [
+				(
+					enemy_kind: Slime,
+					position: (300.0, -150.0),
+				),
+			],
+			terminals: [
+			],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+						(200.0, -240.0),
+						(400.0, -240.0),
+					],
+					is_random: true,
+				),
+			],
+			next_chunk_offset: 576.0,
+			chunk_offset: 32.0,
+		),
 	],
 	jump_chunks: [
 		(
@@ -279,6 +416,44 @@
 					cheat_kind: None,
 					positions: [
 						(240.0, -190.0),
+					],
+					is_random: true,
+				),
+			],
+			next_chunk_offset: 576.0,
+			chunk_offset: 80.0,
+		),
+		(
+			platforms: [
+				(
+					platform_kind: Platform1,
+					position: (0.0, -290.0),
+				),
+				(
+					platform_kind: Platform3,
+					position: (112.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (176.0, -290.0),
+				),
+				(
+					platform_kind: Platform2,
+					position: (240.0, -290.0),
+				),
+				(
+					platform_kind: Platform1,
+					position: (512.0, -290.0),
+				),
+			],
+			enemies: [],
+			terminals: [],
+			chars: [
+				(
+					cheat_kind: None,
+					positions: [
+						(350.0, -190.0),
+						(450.0, -240.0),
 					],
 					is_random: true,
 				),

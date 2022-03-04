@@ -1,12 +1,15 @@
+use std::time::Duration;
+
 use crate::enemies::Enemy;
 use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
-use bevy_rapier2d::prelude::*;
 use bevy_kira_audio::{Audio, AudioChannel};
+use bevy_rapier2d::prelude::*;
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
 use crate::interactables::{CharTextComponent, InteractableComponent, InteractableType};
+use crate::toast::ShowToast;
 
 #[derive(Debug, Component)]
 pub struct Player {
@@ -69,7 +72,8 @@ impl Plugin for PlayerPlugin {
                     .after("player_feet")
                     .with_system(detect_char_interactable)
                     .with_system(player_collide_enemy)
-                    .with_system(player_fall_damage),
+                    .with_system(player_fall_damage)
+                    .with_system(show_terminal_toaster_notification),
             );
     }
 }
@@ -441,6 +445,28 @@ pub fn player_collide_enemy(
                     }
                 }
             }
+        }
+    }
+}
+
+fn show_terminal_toaster_notification(
+    player_query: Query<&Transform, With<Player>>,
+    mut toast_writer: EventWriter<ShowToast>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    let right = keyboard_input.just_released(KeyCode::D);
+    let left = keyboard_input.just_released(KeyCode::A);
+
+    if let Some(player_transform) = player_query.iter().next() {
+        if (right || left)
+            && player_transform.translation.x > 1150.
+            && player_transform.translation.x <= 1300.
+        {
+            let value = String::from("Press E to access console");
+            toast_writer.send(ShowToast {
+                value,
+                duration: Duration::from_secs(3),
+            });
         }
     }
 }

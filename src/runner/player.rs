@@ -7,6 +7,7 @@ use bevy::{prelude::*, render::camera::Camera};
 use bevy_kira_audio::{Audio, AudioChannel};
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
+use std::collections::HashMap;
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
@@ -37,7 +38,12 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(CollectedChars { values: Vec::new() })
+        let mut collected_chars_list = CollectedChars {
+            values: Vec::new(),
+            values_map: HashMap::new(),
+        };
+        collected_chars_list.initialize_map();
+        app.insert_resource(collected_chars_list)
             .insert_resource(PlayerAnimationResource {
                 run_right: AnimationData {
                     length: 8,
@@ -452,6 +458,15 @@ fn detect_char_interactable(
                         audio.set_volume_in_channel(0.3, &audio_channel);
                         audio.play_in_channel(asset_server.load("pickup.ogg"), &audio_channel);
                         collected_chars.values.push(char_component.value);
+
+                        let char_entry = collected_chars.values_map.get(&char_component.value);
+                        if let Some(_count) = char_entry {
+                            *collected_chars
+                                .values_map
+                                .get_mut(&char_component.value)
+                                .unwrap() += 1;
+                        }
+
                         commands.entity(entity).despawn();
                     }
                 }

@@ -1,8 +1,8 @@
 use crate::enemies::Enemy;
 use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates};
 use bevy::{prelude::*, render::camera::Camera};
-use bevy_rapier2d::prelude::*;
 use bevy_kira_audio::{Audio, AudioChannel};
+use bevy_rapier2d::prelude::*;
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
@@ -69,7 +69,8 @@ impl Plugin for PlayerPlugin {
                     .after("player_feet")
                     .with_system(detect_char_interactable)
                     .with_system(player_collide_enemy)
-                    .with_system(player_fall_damage),
+                    .with_system(player_fall_damage)
+                    .with_system(detect_cheat_code_activation),
             );
     }
 }
@@ -323,13 +324,15 @@ fn move_character(
     for (player, mut rb_vel, rb_mprops) in query.iter_mut() {
         let _up = keyboard_input.pressed(KeyCode::W);
         let _down = keyboard_input.pressed(KeyCode::S);
-        let left = keyboard_input.pressed(KeyCode::A);
         let right = keyboard_input.pressed(KeyCode::D);
 
         // TODO: check if player is on the ground
         let jump = cheat_codes.is_code_activated(&CheatCodeKind::Jump)
             && keyboard_input.just_released(KeyCode::Space)
             && !player.feet_touching_platforms.platforms.is_empty();
+
+        let left = cheat_codes.is_code_activated(&CheatCodeKind::MoveLeft)
+            && keyboard_input.pressed(KeyCode::A);
 
         let x_axis = -(left as i8) + right as i8;
 
@@ -441,6 +444,19 @@ pub fn player_collide_enemy(
                     }
                 }
             }
+        }
+    }
+}
+
+pub fn detect_cheat_code_activation(
+    mut query: Query<&mut Player>,
+    mut cheat_codes: ResMut<CheatCodeResource>,
+) {
+    for mut player in query.iter_mut() {
+        if cheat_codes.is_code_activated(&CheatCodeKind::ExtraLife) {
+            player.lives += 1;
+            print!("Player has {} lives", player.lives);
+            cheat_codes.deactivate_code(&CheatCodeKind::ExtraLife);
         }
     }
 }

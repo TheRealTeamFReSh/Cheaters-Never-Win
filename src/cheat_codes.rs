@@ -156,6 +156,13 @@ impl CheatCodeResource {
         CheatCodeActivationResult::NotFound
     }
 
+    pub fn deactivate_code(&mut self, kind: &CheatCodeKind) {
+        if self.is_code_activated(kind) {
+            let index = self.activated.iter().position(|r| r == kind).unwrap();
+            self.activated.remove(index);
+        }
+    }
+
     pub fn is_code_activated(&self, kind: &CheatCodeKind) -> bool {
         self.activated.contains(kind)
     }

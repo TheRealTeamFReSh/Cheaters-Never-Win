@@ -200,7 +200,7 @@ impl CheatCodeResource {
             "attack.png",
             "Press Enter to Attack",
         );
-        insert_cheat(
+        /*insert_cheat(
             &mut codes,
             CheatCodeKind::AttackDmgBoost,
             CheatCodeRarity::Common,
@@ -215,7 +215,7 @@ impl CheatCodeResource {
             vec![CheatCodeKind::Attack],
             "attack_fr_boost.png",
             "Better fire rate",
-        );
+        );*/
         insert_cheat(
             &mut codes,
             CheatCodeKind::MoveLeft,
@@ -248,7 +248,7 @@ impl CheatCodeResource {
             "speed.png",
             "Speed increase lvl. 3",
         );
-        insert_cheat(
+        /*insert_cheat(
             &mut codes,
             CheatCodeKind::Armor,
             CheatCodeRarity::Common,
@@ -263,7 +263,7 @@ impl CheatCodeResource {
             vec![],
             "dash.png",
             "Double tap 'D' to dash",
-        );
+        );*/
 
         // Rare
         insert_cheat(
@@ -274,7 +274,7 @@ impl CheatCodeResource {
             "double_jump.png",
             "Press space in air to jump",
         );
-        insert_cheat(
+        /*insert_cheat(
             &mut codes,
             CheatCodeKind::SpeedBoost4,
             CheatCodeRarity::Rare,
@@ -306,7 +306,7 @@ impl CheatCodeResource {
             vec![CheatCodeKind::Jump],
             "shield.png",
             "Shield activated",
-        );
+        );*/
 
         // Legendary
         insert_cheat(
@@ -317,7 +317,7 @@ impl CheatCodeResource {
             "extra_life.png",
             "Got one extra life",
         );
-        insert_cheat(
+        /*insert_cheat(
             &mut codes,
             CheatCodeKind::TempInvicibility,
             CheatCodeRarity::Legendary,
@@ -332,7 +332,7 @@ impl CheatCodeResource {
             vec![CheatCodeKind::Jump, CheatCodeKind::DoubleJump],
             "fly.png",
             "Hold space to fly",
-        );
+        );*/
 
         Self {
             codes,

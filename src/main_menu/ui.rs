@@ -12,7 +12,6 @@ pub fn build_ui(
 ) {
     info!("[MainMenuPlugin] Building console UI");
 
-    let background_texture_handle: Handle<Image> = asset_server.load("ui_background.png");
     let background_nine_patch_handle =
         nine_patches.add(NinePatchBuilder::by_margins(20, 20, 20, 20));
 
@@ -65,7 +64,6 @@ pub fn build_ui(
         },
         nine_patch_data: NinePatchData {
             nine_patch: background_nine_patch_handle,
-            texture: background_texture_handle,
             ..Default::default()
         },
         ..Default::default()

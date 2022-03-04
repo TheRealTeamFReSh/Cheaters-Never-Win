@@ -10,6 +10,9 @@ mod ui;
 #[derive(Component)]
 pub struct MainMenuEntity;
 
+#[derive(Component)]
+pub struct MainBackgroundLayer;
+
 pub struct MainMenuPlugin;
 impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
@@ -17,6 +20,7 @@ impl Plugin for MainMenuPlugin {
         app.add_system_set(
             SystemSet::on_enter(GameStates::MainMenu)
                 .with_system(ui::build_ui)
+                .with_system(spawn_main_menu_background)
                 .with_system(start_automation_audio),
         );
         // on update
@@ -25,7 +29,8 @@ impl Plugin for MainMenuPlugin {
         app.add_system_set(
             SystemSet::on_exit(GameStates::MainMenu)
                 .with_system(destroy_menu)
-                .with_system(start_gameplay_audio),
+                .with_system(start_gameplay_audio)
+                .with_system(despawn_main_menu_background)
         );
     }
 }
@@ -80,4 +85,39 @@ fn start_automation_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
 fn start_gameplay_audio(asset_server: Res<AssetServer>, audio: Res<Audio>) {
     audio.stop();
     audio.play_looped(asset_server.load("cyberpunk_moonlight_sonata.ogg"));
+}
+
+fn spawn_main_menu_background(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    let texture_handle = asset_server.load("cyberpunk-street.png");
+    let texture_atlas = TextureAtlas::from_grid(
+        texture_handle,
+        Vec2::new(608., 192.),
+        1,
+        1,
+    );
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+
+    commands
+        .spawn_bundle(SpriteSheetBundle {
+            texture_atlas: texture_atlas_handle.clone(),
+            transform: Transform {
+                scale: Vec3::new(3.0, 4.0, 1.0),
+                translation: Vec3::new(0.0, 0.0, 3.0),
+                ..Default::default()
+            },
+            ..Default::default()
+        }).insert(MainBackgroundLayer);
+}
+
+fn despawn_main_menu_background(
+    mut commands: Commands,
+    background_query: Query<Entity, With<MainBackgroundLayer>>,
+) {
+    for entity in background_query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }

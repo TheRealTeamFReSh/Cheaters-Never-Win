@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
+#[cfg(debug_assertions)]
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use bevy_rapier2d::prelude::*;
@@ -27,39 +28,42 @@ mod tab_menu;
 mod toast;
 
 fn main() {
-    App::new()
-        .insert_resource(WindowDescriptor {
-            resizable: false,
-            height: 720.,
-            width: 1280.,
-            title: "Bevy Jam #1".to_string(),
-            ..Default::default()
-        })
-        .insert_resource(cheat_codes::CheatCodeResource::new())
-        .add_plugin(main_menu::MainMenuPlugin)
-        .add_plugins(DefaultPlugins)
-        .add_plugin(WorldInspectorPlugin::new())
-        .add_plugin(tab_menu::TabMenuPlugin)
-        .add_plugin(console::ConsolePlugin)
-        .add_plugin(runner::RunnerPlugin)
-        .add_plugin(pause_menu::PauseMenuPlugin)
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugin(physics::PhysicsPlugin)
-        .add_plugin(platforms::PlatformsPlugin)
-        .add_plugin(enemies::EnemiesPlugin)
-        .add_plugin(toast::ToastPlugin)
-        .add_plugin(game_over::GameOverPlugin)
-        .add_plugin(interactables::InteractablesPlugin)
-        .add_plugin(letter_gutter::LetterGutterPlugin)
-        .add_plugin(AudioPlugin)
-        .add_state(states::GameStates::MainMenu)
-        .add_plugin(stats::GameStatsPlugin)
-        .add_plugin(effects::EffectsPlugin)
-        .add_startup_system(camera::add_camera)
-        // TODO: remove
-        .add_startup_system(test_codes)
-        .add_system_set(SystemSet::on_enter(states::GameStates::Main).with_system(prelude_text))
-        .run();
+    let mut app = App::new();
+
+    #[cfg(debug_assertions)]
+    app.add_plugin(WorldInspectorPlugin::new());
+
+    app.insert_resource(WindowDescriptor {
+        resizable: false,
+        height: 720.,
+        width: 1280.,
+        title: "Bevy Jam #1".to_string(),
+        ..Default::default()
+    })
+    .insert_resource(cheat_codes::CheatCodeResource::new())
+    .add_plugin(main_menu::MainMenuPlugin)
+    .add_plugins(DefaultPlugins)
+    .add_plugin(tab_menu::TabMenuPlugin)
+    .add_plugin(console::ConsolePlugin)
+    .add_plugin(runner::RunnerPlugin)
+    .add_plugin(pause_menu::PauseMenuPlugin)
+    .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+    .add_plugin(physics::PhysicsPlugin)
+    .add_plugin(platforms::PlatformsPlugin)
+    .add_plugin(enemies::EnemiesPlugin)
+    .add_plugin(toast::ToastPlugin)
+    .add_plugin(game_over::GameOverPlugin)
+    .add_plugin(interactables::InteractablesPlugin)
+    .add_plugin(letter_gutter::LetterGutterPlugin)
+    .add_plugin(AudioPlugin)
+    .add_state(states::GameStates::MainMenu)
+    .add_plugin(stats::GameStatsPlugin)
+    .add_plugin(effects::EffectsPlugin)
+    .add_startup_system(camera::add_camera)
+    // TODO: remove
+    .add_startup_system(test_codes)
+    .add_system_set(SystemSet::on_enter(states::GameStates::Main).with_system(prelude_text))
+    .run();
 }
 
 fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {

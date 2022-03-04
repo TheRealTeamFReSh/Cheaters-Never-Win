@@ -1,9 +1,12 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use bevy_rapier2d::prelude::*;
 
 use cheat_codes::CheatCodeResource;
+use toast::ShowToast;
 
 mod camera;
 mod cheat_codes;
@@ -55,6 +58,7 @@ fn main() {
         .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)
+        .add_system_set(SystemSet::on_enter(states::GameStates::Main).with_system(prelude_text))
         .run();
 }
 
@@ -82,4 +86,32 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
     for (_, code) in cheat_codes_res.codes.iter() {
         println!("Code: {:?}, text: {}", code.kind, code.text);
     }
+}
+
+fn prelude_text(mut toasts: EventWriter<ShowToast>) {
+    // empty to avoid issues
+    toasts.send(ShowToast {
+        value: "Welcome to the game".to_string(),
+        duration: Duration::from_secs(2),
+    });
+    toasts.send(ShowToast {
+        value: "Press 'D' to move forward".to_string(),
+        duration: Duration::from_secs(3),
+    });
+    toasts.send(ShowToast {
+        value: "Press TAB to open your book".to_string(),
+        duration: Duration::from_secs(2),
+    });
+    toasts.send(ShowToast {
+        value: "Grab the letters on the ground".to_string(),
+        duration: Duration::from_secs(3),
+    });
+    toasts.send(ShowToast {
+        value: "Go to the terminal".to_string(),
+        duration: Duration::from_secs(3),
+    });
+    toasts.send(ShowToast {
+        value: "And cheat in the game!".to_string(),
+        duration: Duration::from_secs(3),
+    });
 }

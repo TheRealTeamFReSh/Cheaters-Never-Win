@@ -382,6 +382,21 @@ fn move_character(
     audio: Res<Audio>,
 ) {
     for (mut player, mut rb_vel, rb_mprops) in query.iter_mut() {
+        // update acceleration value
+        if cheat_codes.is_code_activated(&CheatCodeKind::SpeedBoost3) {
+            player.acceleration = 0.15;
+            player.deceleration = 0.4;
+            player.speed = 8.9;
+        } else if cheat_codes.is_code_activated(&CheatCodeKind::SpeedBoost2) {
+            player.acceleration = 0.14;
+            player.deceleration = 0.3;
+            player.speed = 8.6;
+        } else if cheat_codes.is_code_activated(&CheatCodeKind::SpeedBoost1) {
+            player.acceleration = 0.13;
+            player.deceleration = 0.2;
+            player.speed = 8.3;
+        }
+
         let _up = keyboard_input.pressed(KeyCode::W);
         let _down = keyboard_input.pressed(KeyCode::S);
         let right = keyboard_input.pressed(KeyCode::D);

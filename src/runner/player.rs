@@ -459,7 +459,7 @@ fn detect_char_interactable(
                         collected_chars.values.push(char_component.value);
 
                         let char_entry = collected_chars.values_map.get(&char_component.value);
-                        if let Some(count) = char_entry {
+                        if let Some(_count) = char_entry {
                             *collected_chars
                                 .values_map
                                 .get_mut(&char_component.value)

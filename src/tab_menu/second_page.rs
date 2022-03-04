@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::cheat_codes::CheatCodeResource;
-use crate::runner::CollectedChars;
+use crate::runner::{CollectedChars, LETTERS};
 
 use super::{TabMenuAssets, TabMenuContent};
 
@@ -69,12 +69,12 @@ pub fn build_ui(
         style: Style {
             size: Size::new(Val::Percent(50.), Val::Px(100.)),
             flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::Center,
+            justify_content: JustifyContent::FlexStart,
             align_items: AlignItems::FlexStart,
-            align_content: AlignContent::FlexStart,
+            align_content: AlignContent::Center,
             flex_wrap: FlexWrap::Wrap,
             position: Rect {
-                top: Val::Px(20.),
+                top: Val::Px(170.),
                 ..Default::default()
             },
             ..Default::default()
@@ -105,22 +105,72 @@ pub fn build_ui(
         ..Default::default()
     };
 
+    // TODO: refactor creating page for collected letters
     let mut collected_chars_section: Vec<TextSection> = Vec::new();
-    for (c, count) in &collected_chars_res.values_map {
-        let section = TextSection {
-            value: format!("{:?}: {}\n", c, count),
-            style: TextStyle {
-                font: assets.font_2.clone(),
-                color: Color::rgb_u8(74, 28, 33).into(),
-                font_size: 20.,
+    for i in 0..LETTERS.len() {
+        let c = LETTERS[i];
+
+        if let Some(count) = collected_chars_res.values_map.get(&c) {
+            let section = TextSection {
+                value: format!("{}: {}\n", c, count),
+                style: TextStyle {
+                    font: assets.font_2.clone(),
+                    color: Color::rgb_u8(74, 28, 33).into(),
+                    font_size: 25.,
+                },
+                ..Default::default()
+            };
+            collected_chars_section.push(section);
+        }
+    }
+
+    // Divide into chunks
+    let mut section_1: Vec<TextSection> = Vec::new();
+    let mut section_2: Vec<TextSection> = Vec::new();
+
+    // Create first section
+    for i in 0..18 {
+        section_1.push(collected_chars_section[i].clone());
+    }
+    let collected_letters_1 = TextBundle {
+        text: Text {
+            sections: section_1,
+            ..Default::default()
+        },
+        style: Style {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::FlexStart,
+            align_content: AlignContent::Center,
+            flex_wrap: FlexWrap::Wrap,
+            position: Rect {
+                left: Val::Px(30.),
+                ..Default::default()
             },
             ..Default::default()
-        };
-        collected_chars_section.push(section);
+        },
+        ..Default::default()
+    };
+
+    // Create second section
+    for i in 18..36 {
+        section_2.push(collected_chars_section[i].clone());
     }
-    let collected_letters = TextBundle {
+    let collected_letters_2 = TextBundle {
         text: Text {
-            sections: collected_chars_section,
+            sections: section_2,
+            ..Default::default()
+        },
+        style: Style {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::FlexStart,
+            align_content: AlignContent::Center,
+            flex_wrap: FlexWrap::Wrap,
+            position: Rect {
+                left: Val::Px(130.),
+                ..Default::default()
+            },
             ..Default::default()
         },
         ..Default::default()
@@ -136,7 +186,8 @@ pub fn build_ui(
                     parent.spawn_bundle(found_codes);
                 });
                 parent.spawn_bundle(right_page).with_children(|parent| {
-                    parent.spawn_bundle(collected_letters);
+                    parent.spawn_bundle(collected_letters_1);
+                    parent.spawn_bundle(collected_letters_2);
                 });
             });
         })

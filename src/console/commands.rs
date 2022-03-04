@@ -67,9 +67,11 @@ pub fn command_handler(
 
 pub fn is_valid_cheat(collected_chars: &mut CollectedChars, code_text: &str) -> bool {
     let original_collected_chars = collected_chars.values.clone();
+    let original_collected_chars_map = collected_chars.values_map.clone();
     for ch in code_text.chars() {
         if !collected_chars.values.contains(&ch) {
             collected_chars.values = original_collected_chars;
+            collected_chars.values_map = original_collected_chars_map;
             return false;
         }
 
@@ -79,6 +81,12 @@ pub fn is_valid_cheat(collected_chars: &mut CollectedChars, code_text: &str) -> 
             .position(|val| *val == ch)
             .unwrap();
         collected_chars.values.remove(index);
+
+        // Update values map
+        let char_entry = collected_chars.values_map.get(&ch);
+        if let Some(_count) = char_entry {
+            *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+        }
     }
     true
 }

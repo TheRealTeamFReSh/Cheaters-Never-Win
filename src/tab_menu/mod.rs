@@ -74,7 +74,14 @@ fn switch_page(
         // on the first page
         if assets.current_page == "first".to_string() {
             assets.current_page = "second".to_string();
-            second_page::build_ui(commands, assets, query, cheat_codes_res, collected_chars_res, window);
+            second_page::build_ui(
+                commands,
+                assets,
+                query,
+                cheat_codes_res,
+                collected_chars_res,
+                window,
+            );
         } else {
             assets.current_page = "first".to_string();
             first_page::build_ui(commands, assets, query, cheat_codes_res, stats_res, window);

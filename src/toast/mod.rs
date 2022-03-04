@@ -7,7 +7,7 @@ use bevy_tweening::{
     TweeningType,
 };
 
-use crate::cheat_codes::{CheatCodeResource};
+use crate::cheat_codes::CheatCodeResource;
 use crate::runner::CollectedChars;
 
 pub struct ShowToast {
@@ -21,15 +21,22 @@ pub struct ToastComponent;
 #[derive(Component)]
 pub struct ToastContentComponent;
 
+pub struct ToastQueueResource {
+    queue: Vec<ShowToast>,
+}
+
 pub struct ToastPlugin;
 impl Plugin for ToastPlugin {
     fn build(&self, app: &mut App) {
         // always here so no need for a systemset
         app.add_startup_system(build_ui);
-        app.add_system(update_content).add_system(test);
+        app.add_system(update_content)
+            .add_system(test)
+            .add_system(display_queue);
         app.add_event::<ShowToast>();
         app.add_plugin(NinePatchPlugin::<()>::default());
         app.add_plugin(TweeningPlugin);
+        app.insert_resource(ToastQueueResource { queue: Vec::new() });
     }
 }
 
@@ -142,15 +149,42 @@ fn build_ui(
 
 fn update_content(
     mut show_toast_ev: EventReader<ShowToast>,
-    mut text_query: Query<&mut Text, With<ToastContentComponent>>,
-    mut anim_query: Query<&mut Animator<Style>, With<ToastComponent>>,
+    mut toast_queue: ResMut<ToastQueueResource>,
 ) {
     for toast_ev in show_toast_ev.iter() {
-        let mut text = text_query.get_single_mut().unwrap();
-        text.sections[0].value = toast_ev.value.clone();
+        // anti spam
+        let matching_toast = toast_queue
+            .queue
+            .iter()
+            .filter(|toast| toast.value.eq(&toast_ev.value))
+            .collect::<Vec<_>>();
 
-        let mut animator = anim_query.get_single_mut().unwrap();
-        animator.set_tweenable(get_toast_animation(toast_ev.duration));
+        if matching_toast.is_empty() {
+            info!("New toast detected");
+            toast_queue.queue.insert(
+                0,
+                ShowToast {
+                    value: toast_ev.value.clone(),
+                    duration: toast_ev.duration,
+                },
+            );
+        }
+    }
+}
+
+fn display_queue(
+    mut toast_queue: ResMut<ToastQueueResource>,
+    mut anim_query: Query<&mut Animator<Style>, With<ToastComponent>>,
+    mut text_query: Query<&mut Text, With<ToastContentComponent>>,
+) {
+    let mut animator = anim_query.get_single_mut().unwrap();
+    let mut text = text_query.get_single_mut().unwrap();
+
+    // if finished
+    if (animator.progress() == 0.0 || animator.progress() == 1.0) && !toast_queue.queue.is_empty() {
+        let next_toast = toast_queue.queue.pop().unwrap();
+        text.sections[0].value = next_toast.value.clone();
+        animator.set_tweenable(get_toast_animation(next_toast.duration));
         animator.rewind();
     }
 }
@@ -162,22 +196,22 @@ fn test(
     cheat_codes: ResMut<CheatCodeResource>,
 ) {
     if keyboard.just_pressed(KeyCode::T) && keyboard.pressed(KeyCode::LControl) {
-      for (kind, code) in &cheat_codes.codes {
-        for i in 0..code.text.len() {
-          let ch = &code.text.chars().nth(i).unwrap();
+        for (kind, code) in &cheat_codes.codes {
+            for i in 0..code.text.len() {
+                let ch = &code.text.chars().nth(i).unwrap();
 
-          if !collected_chars.values.contains(ch) {
-            break;
-          }
+                if !collected_chars.values.contains(ch) {
+                    break;
+                }
 
-          if i == code.text.len() - 1 {
-            let value = format!("[{:?}]: {}", kind, code.text);
-            toast_writer.send(ShowToast {
-                value,
-                duration: Duration::from_secs(5),
-            });
-          }
+                if i == code.text.len() - 1 {
+                    let value = format!("[{:?}]: {}", kind, code.text);
+                    toast_writer.send(ShowToast {
+                        value,
+                        duration: Duration::from_secs(5),
+                    });
+                }
+            }
         }
-      }
     }
 }

@@ -98,8 +98,12 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn despawn_character(mut commands: Commands, query: Query<Entity, With<Player>>) {
+fn despawn_character(
+    mut commands: Commands,
+    query: Query<Entity, Or<(With<Player>, With<RigidBodyPositionComponent>)>>,
+) {
     for ent in query.iter() {
+        warn!("Despawning player");
         commands.entity(ent).despawn_recursive();
     }
 }

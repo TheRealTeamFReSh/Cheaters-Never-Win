@@ -76,15 +76,15 @@ pub fn build_ui(
         ..Default::default()
     };
 
-    let restart_btn = UIButton::new(
+    /*let restart_btn = UIButton::new(
         "Restart".to_string(),
         font_handle.clone(),
         "restart".to_string(),
-    );
+    );*/
     let quit_btn = UIButton::new(
-        "Main menu".to_string(),
+        "Quit game".to_string(),
         font_handle.clone(),
-        "main_menu".to_string(),
+        "quit".to_string(),
     );
 
     // building tree
@@ -94,7 +94,7 @@ pub fn build_ui(
             parent.spawn_bundle(game_over_text);
             parent.spawn_bundle(score_text);
             parent.spawn_bundle(btn_group).with_children(|parent| {
-                restart_btn.spawn(parent);
+                //restart_btn.spawn(parent);
                 quit_btn.spawn(parent);
             });
         })

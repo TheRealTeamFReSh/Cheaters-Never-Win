@@ -38,7 +38,7 @@ pub fn command_handler(
                     args[1]
                 )));
 
-                let can_activate = is_valid_cheat(&mut collected_chars, args[1]);
+                let can_activate = is_valid_cheat(&mut collected_chars, args[1], &cheat_codes_res);
 
                 if can_activate {
                     print_to_console.send(PrintToConsoleEvent(format!(
@@ -65,28 +65,38 @@ pub fn command_handler(
     }
 }
 
-pub fn is_valid_cheat(collected_chars: &mut CollectedChars, code_text: &str) -> bool {
+pub fn is_valid_cheat(
+    collected_chars: &mut CollectedChars,
+    code_text: &str,
+    cheat_codes: &CheatCodeResource,
+) -> bool {
     let original_collected_chars = collected_chars.values.clone();
     let original_collected_chars_map = collected_chars.values_map.clone();
-    for ch in code_text.chars() {
-        if !collected_chars.values.contains(&ch) {
-            collected_chars.values = original_collected_chars;
-            collected_chars.values_map = original_collected_chars_map;
-            return false;
-        }
 
-        let index = collected_chars
-            .values
-            .iter()
-            .position(|val| *val == ch)
-            .unwrap();
-        collected_chars.values.remove(index);
+    let cheats = cheat_codes.codes.clone();
+    let code = cheats
+        .into_iter()
+        .find(|(_kind, code)| code.text == code_text);
 
-        // Update values map
-        let char_entry = collected_chars.values_map.get(&ch);
-        if let Some(_count) = char_entry {
-            *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+    if let Some((_, cheat)) = code {
+        for ch in cheat.text.chars() {
+            let index = collected_chars
+                .values
+                .iter()
+                .position(|val| *val == ch)
+                .unwrap();
+            collected_chars.values.remove(index);
+
+            // Update values map
+            let char_entry = collected_chars.values_map.get(&ch);
+            if let Some(_count) = char_entry {
+                *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+            }
         }
+        return true;
     }
-    true
+
+    collected_chars.values = original_collected_chars;
+    collected_chars.values_map = original_collected_chars_map;
+    false
 }

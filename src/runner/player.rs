@@ -256,6 +256,7 @@ pub fn animate_sprite(
     mut query: Query<(&mut PlayerAnimationTimer, &mut TextureAtlasSprite)>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    rapier_config: Res<RapierConfiguration>,
 ) {
     for (player, rb_vel) in player_query.iter() {
         for (mut timer, mut sprite) in query.iter_mut() {
@@ -293,7 +294,11 @@ pub fn animate_sprite(
                         }
                         let audio_channel = AudioChannel::new("movement-channel".to_owned());
                         if player_animation_resource.run_step_counter % 3 == 0 {
-                            audio.set_volume_in_channel(10.0, &audio_channel);
+                            audio.set_volume_in_channel(
+                                15.0 * (rb_vel.linvel.x.abs()
+                                    / (player.speed * rapier_config.scale)),
+                                &audio_channel,
+                            );
                             audio.play_in_channel(
                                 asset_server.load(
                                     format!(
@@ -322,7 +327,11 @@ pub fn animate_sprite(
                         }
                         let audio_channel = AudioChannel::new("movement-channel".to_owned());
                         if player_animation_resource.run_step_counter % 3 == 0 {
-                            audio.set_volume_in_channel(10.0, &audio_channel);
+                            audio.set_volume_in_channel(
+                                15.0 * (rb_vel.linvel.x.abs()
+                                    / (player.speed * rapier_config.scale)),
+                                &audio_channel,
+                            );
                             audio.play_in_channel(
                                 asset_server.load(
                                     format!(

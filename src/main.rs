@@ -8,6 +8,7 @@ use cheat_codes::CheatCodeResource;
 mod camera;
 mod cheat_codes;
 mod console;
+mod effects;
 mod enemies;
 mod game_over;
 mod interactables;
@@ -50,6 +51,7 @@ fn main() {
         .add_plugin(AudioPlugin)
         .add_state(states::GameStates::MainMenu)
         .add_plugin(stats::GameStatsPlugin)
+        .add_plugin(effects::EffectsPlugin)
         .add_startup_system(camera::add_camera)
         // TODO: remove
         .add_startup_system(test_codes)

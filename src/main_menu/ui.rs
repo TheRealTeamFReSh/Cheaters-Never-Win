@@ -91,11 +91,11 @@ pub fn build_ui(
     };
 
     let play_btn = UIButton::new("Play".to_string(), font_handle.clone(), "play".to_string());
-    let options_btn = UIButton::new(
-        "Options".to_string(),
-        font_handle.clone(),
-        "options".to_string(),
-    );
+    // let options_btn = UIButton::new(
+    //     "Options".to_string(),
+    //     font_handle.clone(),
+    //     "options".to_string(),
+    // );
     let quit_btn = UIButton::new("Quit".to_string(), font_handle.clone(), "quit".to_string());
 
     // ---------- UI TREE CONSTRUCTION ----------//
@@ -107,7 +107,8 @@ pub fn build_ui(
             parent.spawn_bundle(container).with_children(|parent| {
                 parent.spawn_bundle(pause_title);
                 play_btn.spawn(parent);
-                options_btn.spawn(parent);
+                // TODO: Add options back
+                // options_btn.spawn(parent);
                 quit_btn.spawn(parent);
             });
         })

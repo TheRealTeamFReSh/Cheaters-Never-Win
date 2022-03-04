@@ -120,19 +120,6 @@ fn update_gutter(
 
         if sections.len() > 10 {
             gutter_text.sections = sections[sections.len() - 10..sections.len()].to_vec();
-            /*
-            // Show a notification for user to view book to see a list of all letters
-            let right = keyboard_input.just_released(KeyCode::D);
-            let left = keyboard_input.just_released(KeyCode::A);
-            let value = String::from("See book to view all collected letters");
-
-            if right || left {
-                toast_writer.send(ShowToast {
-                    value,
-                    duration: Duration::from_secs(3),
-                });
-            }
-            */
         } else {
             gutter_text.sections = sections;
         }

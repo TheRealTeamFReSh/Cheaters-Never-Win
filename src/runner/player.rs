@@ -56,6 +56,10 @@ impl Plugin for PlayerPlugin {
                     length: 8,
                     offset: 24,
                 },
+                dash_attack: AnimationData {
+                    length: 8,
+                    offset: 32,
+                },
                 run_step_counter: 0,
             })
             .add_system_set(
@@ -91,7 +95,7 @@ fn spawn_character(
     rapier_config: Res<RapierConfiguration>,
 ) {
     let texture_handle = asset_server.load("player.png");
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 4);
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(71.0, 67.0), 8, 5);
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
@@ -245,6 +249,7 @@ pub struct PlayerAnimationResource {
     pub run_left: AnimationData,
     pub jump: AnimationData,
     pub idle: AnimationData,
+    pub dash_attack: AnimationData,
     pub run_step_counter: u32,
 }
 

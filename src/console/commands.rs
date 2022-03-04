@@ -1,7 +1,8 @@
+use crate::cheat_codes::CheatCodeActivationResult;
 use crate::runner::CollectedChars;
 use crate::{cheat_codes::CheatCodeResource, states::GameStates};
 
-use super::{event::*, ConsoleData};
+use super::{event::*, CheatCodeActivatedEvent, ConsoleData};
 use bevy::prelude::*;
 
 pub fn command_handler(
@@ -11,6 +12,7 @@ pub fn command_handler(
     mut game_state: ResMut<State<GameStates>>,
     mut cheat_codes_res: ResMut<CheatCodeResource>,
     mut collected_chars: ResMut<CollectedChars>,
+    mut ev_writer: EventWriter<CheatCodeActivatedEvent>,
 ) {
     for SendCommandEvent(command) in cmd_reader.iter() {
         // skip if the command is empty
@@ -41,10 +43,15 @@ pub fn command_handler(
                 let can_activate = is_valid_cheat(&mut collected_chars, args[1], &cheat_codes_res);
 
                 if can_activate {
+                    let activation_res = cheat_codes_res.activate_code(args[1]);
                     print_to_console.send(PrintToConsoleEvent(format!(
                         "Activation result: {}",
-                        cheat_codes_res.activate_code(args[1]).repr()
+                        activation_res.repr()
                     )));
+
+                    if let CheatCodeActivationResult::Activated(kind) = activation_res {
+                        ev_writer.send(CheatCodeActivatedEvent(kind));
+                    }
                 } else {
                     print_to_console.send(PrintToConsoleEvent(format!(
                         "Failed to activate. Need more information."
@@ -80,17 +87,16 @@ pub fn is_valid_cheat(
 
     if let Some((_, cheat)) = code {
         for ch in cheat.text.chars() {
-            let index = collected_chars
-                .values
-                .iter()
-                .position(|val| *val == ch)
-                .unwrap();
-            collected_chars.values.remove(index);
+            let index_opt = collected_chars.values.iter().position(|val| *val == ch);
 
-            // Update values map
-            let char_entry = collected_chars.values_map.get(&ch);
-            if let Some(_count) = char_entry {
-                *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+            if let Some(index) = index_opt {
+                collected_chars.values.remove(index);
+
+                // Update values map
+                let char_entry = collected_chars.values_map.get(&ch);
+                if let Some(_count) = char_entry {
+                    *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
+                }
             }
         }
         return true;

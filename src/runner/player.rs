@@ -82,6 +82,7 @@ impl Plugin for PlayerPlugin {
                     .with_system(player_feet)
                     .label("player_feet"),
             )
+            .add_system_set(SystemSet::on_exit(GameStates::Main).with_system(despawn_character))
             .add_system_set(
                 SystemSet::on_update(GameStates::Main)
                     .with_system(follow_player_camera)
@@ -94,6 +95,12 @@ impl Plugin for PlayerPlugin {
                     .with_system(detect_cheat_code_activation)
                     .with_system(show_terminal_toaster_notification),
             );
+    }
+}
+
+fn despawn_character(mut commands: Commands, query: Query<Entity, With<Player>>) {
+    for ent in query.iter() {
+        commands.entity(ent).despawn_recursive();
     }
 }
 

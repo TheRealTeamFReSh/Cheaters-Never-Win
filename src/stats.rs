@@ -96,10 +96,10 @@ pub fn update_run_time(time: Res<Time>, mut stats_res: ResMut<GameStatsResource>
 
 pub fn update_avg_speed(
     time: Res<Time>,
-    mut query: Query<&mut RigidBodyVelocityComponent, With<Player>>,
+    query: Query<&mut RigidBodyVelocityComponent, With<Player>>,
     mut stats_res: ResMut<GameStatsResource>,
 ) {
-    let velocity: Vec2 = query.get_single_mut().unwrap().linvel.into();
+    let velocity: Vec2 = query.iter().last().unwrap().linvel.into();
     let avg_dist = stats_res.run_time as f32 * stats_res.avg_speed;
     stats_res.avg_speed = (avg_dist + velocity.x * (time.delta_seconds_f64() as f32))
         / (stats_res.run_time as f32 + time.delta_seconds_f64() as f32);

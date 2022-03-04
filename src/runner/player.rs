@@ -5,6 +5,7 @@ use crate::{camera::TwoDCameraComponent, physics, platforms, states::GameStates}
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_kira_audio::{Audio, AudioChannel};
 use bevy_rapier2d::prelude::*;
+use rand::Rng;
 
 use super::CollectedChars;
 use crate::cheat_codes::{CheatCodeKind, CheatCodeResource};
@@ -53,6 +54,7 @@ impl Plugin for PlayerPlugin {
                     length: 8,
                     offset: 24,
                 },
+                run_step_counter: 0,
             })
             .add_system_set(
                 SystemSet::on_enter(GameStates::Main)
@@ -239,6 +241,7 @@ pub struct PlayerAnimationResource {
     pub run_left: AnimationData,
     pub jump: AnimationData,
     pub idle: AnimationData,
+    pub run_step_counter: u32,
 }
 
 pub struct AnimationData {
@@ -248,9 +251,11 @@ pub struct AnimationData {
 
 pub fn animate_sprite(
     time: Res<Time>,
-    player_animation_resource: Res<PlayerAnimationResource>,
+    mut player_animation_resource: ResMut<PlayerAnimationResource>,
     player_query: Query<(&Player, &RigidBodyVelocityComponent)>,
     mut query: Query<(&mut PlayerAnimationTimer, &mut TextureAtlasSprite)>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     for (player, rb_vel) in player_query.iter() {
         for (mut timer, mut sprite) in query.iter_mut() {
@@ -265,6 +270,9 @@ pub fn animate_sprite(
                                 + player_animation_resource.jump.offset)
                     {
                         sprite.index = player_animation_resource.jump.offset;
+                        let audio_channel = AudioChannel::new("movement-channel".to_owned());
+                        audio.set_volume_in_channel(10.0, &audio_channel);
+                        audio.play_in_channel(asset_server.load("jump.ogg"), &audio_channel);
                     } else if sprite.index
                         < (player_animation_resource.jump.length
                             + player_animation_resource.jump.offset)
@@ -277,9 +285,25 @@ pub fn animate_sprite(
                         // player is running right
                         if sprite.index >= player_animation_resource.run_right.length {
                             sprite.index = 0;
+                            player_animation_resource.run_step_counter = 0;
                         } else {
                             sprite.index =
                                 (sprite.index + 1) % player_animation_resource.run_right.length;
+                            player_animation_resource.run_step_counter += 1;
+                        }
+                        let audio_channel = AudioChannel::new("movement-channel".to_owned());
+                        if player_animation_resource.run_step_counter % 3 == 0 {
+                            audio.set_volume_in_channel(10.0, &audio_channel);
+                            audio.play_in_channel(
+                                asset_server.load(
+                                    format!(
+                                        "footsteps/{}.ogg",
+                                        rand::thread_rng().gen_range(0..10)
+                                    )
+                                    .as_str(),
+                                ),
+                                &audio_channel,
+                            );
                         }
                     } else if rb_vel.linvel.x < 0.0 {
                         //player is running left
@@ -289,10 +313,26 @@ pub fn animate_sprite(
                                     + player_animation_resource.run_left.offset)
                         {
                             sprite.index = player_animation_resource.run_left.offset;
+                            player_animation_resource.run_step_counter = 0;
                         } else {
                             sprite.index = ((sprite.index + 1)
                                 % player_animation_resource.run_left.length)
                                 + player_animation_resource.run_left.offset;
+                            player_animation_resource.run_step_counter += 1;
+                        }
+                        let audio_channel = AudioChannel::new("movement-channel".to_owned());
+                        if player_animation_resource.run_step_counter % 3 == 0 {
+                            audio.set_volume_in_channel(10.0, &audio_channel);
+                            audio.play_in_channel(
+                                asset_server.load(
+                                    format!(
+                                        "footsteps/{}.ogg",
+                                        rand::thread_rng().gen_range(0..10)
+                                    )
+                                    .as_str(),
+                                ),
+                                &audio_channel,
+                            );
                         }
                     } else {
                         //player is idling

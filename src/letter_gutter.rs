@@ -1,5 +1,7 @@
 use bevy::prelude::*;
+use std::time::Duration;
 
+use crate::toast::ShowToast;
 use crate::{runner::CollectedChars, states::GameStates};
 
 #[derive(Component)]
@@ -86,11 +88,13 @@ fn update_gutter(
     collected_chars: Res<CollectedChars>,
     mut query: Query<&mut Text, With<GutterComponent>>,
     asset_server: Res<AssetServer>,
+    mut toast_writer: EventWriter<ShowToast>,
+    keyboard_input: Res<Input<KeyCode>>,
 ) {
     let font_handle = asset_server.load("fonts/212 Keyboard.otf");
     let mut gutter_text = query.get_single_mut().unwrap();
 
-    let sections = collected_chars
+    let sections: Vec<TextSection> = collected_chars
         .values
         .iter()
         .map(|char| TextSection {
@@ -103,5 +107,21 @@ fn update_gutter(
         })
         .collect();
 
-    gutter_text.sections = sections;
+    if sections.len() > 10 {
+        gutter_text.sections = sections[0..10].to_vec();
+
+        // Show a notification for user to view book to see a list of all letters
+        let right = keyboard_input.just_released(KeyCode::D);
+        let left = keyboard_input.just_released(KeyCode::A);
+        let value = String::from("See book to view all collected letters");
+
+        if right || left {
+            toast_writer.send(ShowToast {
+                value,
+                duration: Duration::from_secs(3),
+            });
+        }
+    } else {
+        gutter_text.sections = sections;
+    }
 }

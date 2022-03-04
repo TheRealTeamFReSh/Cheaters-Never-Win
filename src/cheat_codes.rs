@@ -63,7 +63,7 @@ impl CheatCodeActivationResult {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone)]
 pub struct CheatCode {
     pub kind: CheatCodeKind,
     pub rarity: CheatCodeRarity,

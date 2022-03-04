@@ -37,7 +37,7 @@ pub fn command_handler(
         match args[0] {
             "clear" => data.lines.clear(),
             "help" => print_to_console.send(PrintToConsoleEvent(super::utils::display_help())),
-            "use" => {
+            "cheat" => {
                 print_to_console.send(PrintToConsoleEvent(format!(
                     "Activating cheat code: <{}>...",
                     args[1]
@@ -68,6 +68,7 @@ pub fn command_handler(
                 print_to_console.send(PrintToConsoleEvent("Closing session...".to_string()));
                 game_state.pop().unwrap();
             }
+            "log" => print_to_console.send(PrintToConsoleEvent(super::utils::display_random_log())),
             _ => {
                 print_to_console.send(PrintToConsoleEvent(format!(
                     "Command \"{}\" not found.\nType \"help\" to print the list of available commands.",

@@ -120,8 +120,8 @@ fn close_menu_trigger(
 
 fn remind_second_page(mut ev_writer: EventWriter<ShowToast>) {
     ev_writer.send(ShowToast {
-        value: "Press TAB to show the second page".to_string(),
-        duration: Duration::from_secs(5),
+        value: "Press TAB to turn page".to_string(),
+        duration: Duration::from_secs(2),
     });
 }
 

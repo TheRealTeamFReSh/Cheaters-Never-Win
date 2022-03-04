@@ -1,6 +1,7 @@
 use crate::runner::player::Player;
 use crate::states::GameStates;
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 const BACKGROUND_SPRITE_WIDTH: f32 = 816.;
 const BACKGROUND_SPRITE_HEIGHT: f32 = 480.;
@@ -11,12 +12,23 @@ const CAMERA_OFFSET_X: f32 = 1060.;
 #[derive(Debug, Component)]
 pub struct BackgroundLayer;
 
+pub struct BackgroundResource {
+    pub next_x: f32,
+}
+
 pub struct BackgroundLayerPlugin;
 
 impl Plugin for BackgroundLayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameStates::Main).with_system(spawn_initial_layers))
-            .add_system_set(SystemSet::on_update(GameStates::Main).with_system(update_layers));
+        app.insert_resource(BackgroundResource {
+            next_x: BACKGROUND_SPRITE_WIDTH * 2.0,
+        })
+        .add_system_set(SystemSet::on_enter(GameStates::Main).with_system(spawn_initial_layers))
+        .add_system_set(
+            SystemSet::on_update(GameStates::Main)
+                .with_system(update_layers)
+                .with_system(despawn_backgrounds),
+        );
     }
 }
 
@@ -44,7 +56,7 @@ fn spawn_initial_layers(
             },
             ..Default::default()
         })
-        .insert(BackgroundLayer);
+        .insert(BackgroundLayer {});
 
     commands
         .spawn_bundle(SpriteSheetBundle {
@@ -77,56 +89,65 @@ fn update_layers(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     camera: Query<&Transform, With<Player>>,
     mut query: Query<(Entity, &Transform, &BackgroundLayer, Without<Player>)>,
+    mut background_resource: ResMut<BackgroundResource>,
 ) {
-    if let Some(cam) = camera.iter().next() {
-        for (entity, transform, _, _) in query.iter_mut() {
-            let right_bound =
-                transform.translation.x + BACKGROUND_SPRITE_WIDTH + PLAYER_SPRITE_WIDTH * 2.;
-            let left_bound =
-                transform.translation.x - BACKGROUND_SPRITE_WIDTH - PLAYER_SPRITE_WIDTH * 2.;
-
-            let texture_handle = asset_server.load("cyberpunk-city.png");
-            let texture_atlas = TextureAtlas::from_grid(
-                texture_handle,
-                Vec2::new(BACKGROUND_SPRITE_WIDTH, BACKGROUND_SPRITE_HEIGHT),
-                1,
-                1,
+    for transform in camera.iter() {
+        if transform.translation.x
+            >= (background_resource.next_x - BACKGROUND_SPRITE_WIDTH) - CAMERA_OFFSET_X
+        {
+            spawn_layer(
+                &mut commands,
+                &asset_server,
+                &mut texture_atlases,
+                background_resource.next_x,
             );
-            let texture_atlas_handle = texture_atlases.add(texture_atlas);
-
-            if cam.translation.x > right_bound {
-                spawn_layer(
-                    &mut commands,
-                    texture_atlas_handle.clone(),
-                    cam.translation.x + CAMERA_OFFSET_X,
-                );
-                commands.entity(entity).despawn();
-            } else if cam.translation.x < left_bound {
-                spawn_layer(
-                    &mut commands,
-                    texture_atlas_handle.clone(),
-                    cam.translation.x - CAMERA_OFFSET_X,
-                );
-                commands.entity(entity).despawn();
-            }
+            background_resource.next_x += BACKGROUND_SPRITE_WIDTH;
         }
     }
 }
 
 pub fn spawn_layer(
     commands: &mut Commands,
-    texture_atlas_handle: Handle<TextureAtlas>,
-    cam_x_offset: f32,
+    asset_server: &AssetServer,
+    texture_atlases: &mut Assets<TextureAtlas>,
+    x_pos: f32,
 ) {
+    let texture_handle = asset_server.load("cyberpunk-city.png");
+    let texture_atlas = TextureAtlas::from_grid(
+        texture_handle,
+        Vec2::new(BACKGROUND_SPRITE_WIDTH, BACKGROUND_SPRITE_HEIGHT),
+        1,
+        1,
+    );
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
     commands
         .spawn_bundle(SpriteSheetBundle {
             texture_atlas: texture_atlas_handle.clone(),
             transform: Transform {
                 scale: Vec3::new(1.0, 1.5, 1.0),
-                translation: Vec3::new(cam_x_offset, 0.0, 0.0),
+                translation: Vec3::new(x_pos, 0.0, 0.0),
                 ..Default::default()
             },
             ..Default::default()
         })
         .insert(BackgroundLayer);
+}
+
+pub fn despawn_backgrounds(
+    mut commands: Commands,
+    rapier_config: Res<RapierConfiguration>,
+    player_query: Query<&RigidBodyPositionComponent, With<Player>>,
+    background_query: Query<(Entity, &Transform), With<BackgroundLayer>>,
+) {
+    for player_rb_pos in player_query.iter() {
+        for (entity, background_transform) in background_query.iter() {
+            if (player_rb_pos.position.translation.x * rapier_config.scale)
+                - background_transform.translation.x
+                > 10000.0
+            {
+                info!("despawning background");
+                commands.entity(entity).despawn_recursive();
+            }
+        }
+    }
 }

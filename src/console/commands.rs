@@ -55,7 +55,7 @@ pub fn command_handler(
                     if let CheatCodeActivationResult::Activated(kind) = activation_res {
                         ev_writer.send(CheatCodeActivatedEvent(kind));
                         let audio_channel = AudioChannel::new("sfx-channel".to_owned());
-                        audio.set_volume_in_channel(6.0, &audio_channel);
+                        audio.set_volume_in_channel(2.0, &audio_channel);
                         audio.play_in_channel(asset_server.load("powerup.ogg"), &audio_channel);
                     }
                 } else {

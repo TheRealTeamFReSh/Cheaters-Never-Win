@@ -116,7 +116,7 @@ fn spawn_character(
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let player = Player {
         speed: 8.0,
-        lives: 3,
+        lives: 6,
         acceleration: 0.12,
         deceleration: 0.1,
         feet_touching_platforms: FeetTouchingPlatforms { platforms: vec![] },
@@ -614,6 +614,7 @@ pub fn player_collide_enemy(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     asset_server: Res<AssetServer>,
     audio: Res<Audio>,
+    mut game_state: ResMut<State<GameStates>>,
 ) {
     for contact_event in contact_events.iter() {
         if let ContactEvent::Started(h1, h2) = contact_event {
@@ -638,6 +639,7 @@ pub fn player_collide_enemy(
                         audio.play_in_channel(asset_server.load("explosion.ogg"), &audio_channel);
                         if player.lives <= 0 {
                             game_over_event.send(GameOverEvent);
+                            game_state.push(GameStates::GameOver).unwrap();
                         }
                     }
                 }

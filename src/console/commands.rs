@@ -37,7 +37,7 @@ pub fn command_handler(
         match args[0] {
             "clear" => data.lines.clear(),
             "help" => print_to_console.send(PrintToConsoleEvent(super::utils::display_help())),
-            "use" => {
+            "cheat" => {
                 print_to_console.send(PrintToConsoleEvent(format!(
                     "Activating cheat code: <{}>...",
                     args[1]

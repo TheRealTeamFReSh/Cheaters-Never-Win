@@ -43,7 +43,7 @@ pub fn display_help() -> String {
         " ",
         "+ AVAILABLE COMMANDS --------------------------------------------------------  +",
         "    - help: show the available commands",
-        "    - use <code>: enable a cheat code for this world",
+        "    - cheat <code>: enable a cheat code for this world",
         "    - exit: exit this terminal to go back to the boring reality",
         " ",
     ];

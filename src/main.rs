@@ -95,27 +95,31 @@ fn test_codes(mut cheat_codes_res: ResMut<CheatCodeResource>) {
 fn prelude_text(mut toasts: EventWriter<ShowToast>) {
     // empty to avoid issues
     toasts.send(ShowToast {
-        value: "Welcome to the game".to_string(),
-        duration: Duration::from_secs(2),
-    });
-    toasts.send(ShowToast {
         value: "Press 'D' to move forward".to_string(),
         duration: Duration::from_secs(3),
     });
     toasts.send(ShowToast {
-        value: "Press TAB to open your book".to_string(),
+        value: "Press TAB to open journal".to_string(),
+        duration: Duration::from_secs(3),
+    });
+    toasts.send(ShowToast {
+        value: "Collect letters".to_string(),
+        duration: Duration::from_secs(3),
+    });
+    toasts.send(ShowToast {
+        value: "Press `E` to interact with terminal".to_string(),
+        duration: Duration::from_secs(3),
+    });
+    toasts.send(ShowToast {
+        value: "Use \"cheat <code>\" command...".to_string(),
         duration: Duration::from_secs(2),
     });
     toasts.send(ShowToast {
-        value: "Grab the letters on the ground".to_string(),
-        duration: Duration::from_secs(3),
+        value: "...to spend letters...".to_string(),
+        duration: Duration::from_secs(2),
     });
     toasts.send(ShowToast {
-        value: "Go to the terminal".to_string(),
-        duration: Duration::from_secs(3),
-    });
-    toasts.send(ShowToast {
-        value: "And cheat in the game!".to_string(),
-        duration: Duration::from_secs(3),
+        value: "...and activate abilities!".to_string(),
+        duration: Duration::from_secs(2),
     });
 }

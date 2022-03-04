@@ -192,6 +192,7 @@ impl CheatCodeResource {
             "crouch.png",
             "Press Ctrl to crouch",
         );
+        /*
         insert_cheat(
             &mut codes,
             CheatCodeKind::Attack,
@@ -200,6 +201,7 @@ impl CheatCodeResource {
             "attack.png",
             "Press Enter to Attack",
         );
+        */
         /*insert_cheat(
             &mut codes,
             CheatCodeKind::AttackDmgBoost,
@@ -255,7 +257,8 @@ impl CheatCodeResource {
             vec![],
             "armor.png",
             "Better armor",
-        );
+        );*/
+
         insert_cheat(
             &mut codes,
             CheatCodeKind::Dash,
@@ -263,7 +266,7 @@ impl CheatCodeResource {
             vec![],
             "dash.png",
             "Double tap 'D' to dash",
-        );*/
+        );
 
         // Rare
         insert_cheat(
@@ -312,7 +315,7 @@ impl CheatCodeResource {
         insert_cheat(
             &mut codes,
             CheatCodeKind::ExtraLife,
-            CheatCodeRarity::Legendary,
+            CheatCodeRarity::Common,
             vec![],
             "extra_life.png",
             "Got one extra life",

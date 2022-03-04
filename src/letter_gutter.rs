@@ -119,8 +119,8 @@ fn update_gutter(
             .collect();
 
         if sections.len() > 10 {
-            gutter_text.sections = sections[0..10].to_vec();
-
+            gutter_text.sections = sections[sections.len() - 10..sections.len()].to_vec();
+            /*
             // Show a notification for user to view book to see a list of all letters
             let right = keyboard_input.just_released(KeyCode::D);
             let left = keyboard_input.just_released(KeyCode::A);
@@ -132,6 +132,7 @@ fn update_gutter(
                     duration: Duration::from_secs(3),
                 });
             }
+            */
         } else {
             gutter_text.sections = sections;
         }

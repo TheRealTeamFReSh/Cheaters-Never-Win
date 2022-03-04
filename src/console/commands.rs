@@ -103,6 +103,10 @@ pub fn is_valid_cheat(
                 if let Some(_count) = char_entry {
                     *collected_chars.values_map.get_mut(&ch).unwrap() -= 1;
                 }
+            } else {
+                collected_chars.values = original_collected_chars;
+                collected_chars.values_map = original_collected_chars_map;
+                return false;
             }
         }
         return true;

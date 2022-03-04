@@ -81,7 +81,7 @@ pub fn build_ui(
                     color: Color::rgb_u8(205, 205, 205).into(),
                     ..Default::default()
                 },
-                value: "Cheaters never die".to_string(),
+                value: "Cheaters Never Win".to_string(),
                 ..Default::default()
             }],
             alignment: TextAlignment {

@@ -73,7 +73,7 @@ fn spawn_slime(
             shape: ColliderShape::ball(collider_radius).into(),
             material: ColliderMaterial {
                 friction: 0.5,
-                restitution: 0.5,
+                restitution: 0.2,
                 ..Default::default()
             }
             .into(),
@@ -83,7 +83,7 @@ fn spawn_slime(
         .insert(Enemy)
         .insert(SlimeEnemy {
             jump_timer: Timer::from_seconds(3.0, true),
-            jump_impulse: 400.0,
+            jump_impulse: 550.0,
             jump_torque_impulse: 30.0,
         })
         .insert(Name::new("Enemy-Slime"));

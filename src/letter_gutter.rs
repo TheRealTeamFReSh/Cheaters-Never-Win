@@ -7,12 +7,22 @@ use crate::{runner::CollectedChars, states::GameStates};
 #[derive(Component)]
 pub struct GutterComponent;
 
+#[derive(Component)]
+pub struct GutterUIComponent;
+
 pub struct LetterGutterPlugin;
 
 impl Plugin for LetterGutterPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameStates::Main).with_system(build_ui));
         app.add_system_set(SystemSet::on_update(GameStates::Main).with_system(update_gutter));
+        app.add_system_set(SystemSet::on_exit(GameStates::Main).with_system(gutter_destructor));
+    }
+}
+
+fn gutter_destructor(mut commands: Commands, query: Query<Entity, With<GutterUIComponent>>) {
+    for ent in query.iter() {
+        commands.entity(ent).despawn_recursive();
     }
 }
 
@@ -81,7 +91,8 @@ pub fn build_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|parent| {
             parent.spawn_bundle(gutter_background);
             parent.spawn_bundle(text_container).insert(GutterComponent);
-        });
+        })
+        .insert(GutterUIComponent);
 }
 
 fn update_gutter(
@@ -92,36 +103,37 @@ fn update_gutter(
     keyboard_input: Res<Input<KeyCode>>,
 ) {
     let font_handle = asset_server.load("fonts/212 Keyboard.otf");
-    let mut gutter_text = query.get_single_mut().unwrap();
 
-    let sections: Vec<TextSection> = collected_chars
-        .values
-        .iter()
-        .map(|char| TextSection {
-            value: char.to_string().to_uppercase(),
-            style: TextStyle {
-                font: font_handle.clone(),
-                font_size: 64.,
-                color: Color::rgb_u8(220, 220, 220),
-            },
-        })
-        .collect();
+    for mut gutter_text in query.iter_mut() {
+        let sections: Vec<TextSection> = collected_chars
+            .values
+            .iter()
+            .map(|char| TextSection {
+                value: char.to_string().to_uppercase(),
+                style: TextStyle {
+                    font: font_handle.clone(),
+                    font_size: 64.,
+                    color: Color::rgb_u8(220, 220, 220),
+                },
+            })
+            .collect();
 
-    if sections.len() > 10 {
-        gutter_text.sections = sections[0..10].to_vec();
+        if sections.len() > 10 {
+            gutter_text.sections = sections[0..10].to_vec();
 
-        // Show a notification for user to view book to see a list of all letters
-        let right = keyboard_input.just_released(KeyCode::D);
-        let left = keyboard_input.just_released(KeyCode::A);
-        let value = String::from("See book to view all collected letters");
+            // Show a notification for user to view book to see a list of all letters
+            let right = keyboard_input.just_released(KeyCode::D);
+            let left = keyboard_input.just_released(KeyCode::A);
+            let value = String::from("See book to view all collected letters");
 
-        if right || left {
-            toast_writer.send(ShowToast {
-                value,
-                duration: Duration::from_secs(3),
-            });
+            if right || left {
+                toast_writer.send(ShowToast {
+                    value,
+                    duration: Duration::from_secs(3),
+                });
+            }
+        } else {
+            gutter_text.sections = sections;
         }
-    } else {
-        gutter_text.sections = sections;
     }
 }

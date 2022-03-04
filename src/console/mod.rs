@@ -1,13 +1,17 @@
 use bevy::prelude::*;
+use bevy_kira_audio::{Audio, AudioChannel};
 use bevy_loading::prelude::*;
 
 use self::{
     event::{PrintToConsoleEvent, SendCommandEvent},
     loading_screen::LoadingScreenPlugin,
 };
-use crate::interactables::{InteractableComponent, InteractableType};
 use crate::runner::Player;
 use crate::states::GameStates;
+use crate::{
+    cheat_codes::CheatCodeKind,
+    interactables::{InteractableComponent, InteractableType},
+};
 
 mod commands;
 mod event;
@@ -15,6 +19,8 @@ mod input;
 mod loading_screen;
 mod ui;
 mod utils;
+
+pub struct CheatCodeActivatedEvent(pub CheatCodeKind);
 
 #[derive(Component)]
 pub struct ConsoleStateEntity;
@@ -39,6 +45,7 @@ impl Plugin for ConsolePlugin {
         );
 
         // plugin building
+        app.add_event::<CheatCodeActivatedEvent>();
         app.insert_resource(ConsoleData {
             input: String::from(""),
             history_index: 0,
@@ -53,6 +60,7 @@ impl Plugin for ConsolePlugin {
         .add_system_set(
             SystemSet::on_update(GameStates::Console)
                 .with_system(close_console_handler)
+                .with_system(event::show_help_text)
                 .with_system(ui::hide_foreground),
         )
         .add_system_set(
@@ -127,6 +135,8 @@ fn open_console_handler(
     mut game_state: ResMut<State<GameStates>>,
     player_query: Query<&Transform, With<Player>>,
     interactable_query: Query<(&InteractableComponent, &Transform)>,
+    asset_server: Res<AssetServer>,
+    audio: Res<Audio>,
 ) {
     if keyboard.just_released(KeyCode::E) {
         // Only open the terminal when in range
@@ -145,6 +155,9 @@ fn open_console_handler(
                         {
                             game_state.push(GameStates::ConsoleLoading).unwrap();
                             keyboard.reset(KeyCode::E);
+                            let audio_channel = AudioChannel::new("sfx-channel".to_owned());
+                            audio.set_volume_in_channel(10.0, &audio_channel);
+                            audio.play_in_channel(asset_server.load("crt.ogg"), &audio_channel);
                         }
                     }
                     _ => {}

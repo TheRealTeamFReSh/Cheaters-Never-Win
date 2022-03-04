@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::cheat_codes::CheatCodeResource;
+use crate::runner::CollectedChars;
 
 use super::{TabMenuAssets, TabMenuContent};
 
@@ -12,6 +13,7 @@ pub fn build_ui(
     assets: ResMut<TabMenuAssets>,
     query: Query<Entity, With<TabMenuContent>>,
     cheat_codes_res: Res<CheatCodeResource>,
+    collected_chars_res: Res<CollectedChars>,
     window: Res<Windows>,
 ) {
     let current_window = window.get_primary().unwrap();
@@ -65,12 +67,12 @@ pub fn build_ui(
 
     let right_page = NodeBundle {
         style: Style {
-            size: Size::new(Val::Percent(50.), Val::Percent(60.)),
+            size: Size::new(Val::Percent(50.), Val::Px(100.)),
             flex_direction: FlexDirection::Row,
-            justify_content: JustifyContent::FlexStart,
+            justify_content: JustifyContent::Center,
             align_items: AlignItems::FlexStart,
             align_content: AlignContent::FlexStart,
-            flex_wrap: FlexWrap::WrapReverse,
+            flex_wrap: FlexWrap::Wrap,
             position: Rect {
                 top: Val::Px(20.),
                 ..Default::default()
@@ -103,6 +105,27 @@ pub fn build_ui(
         ..Default::default()
     };
 
+    let mut collected_chars_section: Vec<TextSection> = Vec::new();
+    for (c, count) in &collected_chars_res.values_map {
+        let section = TextSection {
+            value: format!("{:?}: {}\n", c, count),
+            style: TextStyle {
+                font: assets.font_2.clone(),
+                color: Color::rgb_u8(74, 28, 33).into(),
+                font_size: 20.,
+            },
+            ..Default::default()
+        };
+        collected_chars_section.push(section);
+    }
+    let collected_letters = TextBundle {
+        text: Text {
+            sections: collected_chars_section,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+
     // ---------- UI TREE CONSTRUCTION ----------//
 
     content
@@ -112,7 +135,9 @@ pub fn build_ui(
                 parent.spawn_bundle(left_page).with_children(|parent| {
                     parent.spawn_bundle(found_codes);
                 });
-                parent.spawn_bundle(right_page);
+                parent.spawn_bundle(right_page).with_children(|parent| {
+                    parent.spawn_bundle(collected_letters);
+                });
             });
         })
         .insert(SecondPageComponent);

@@ -135,13 +135,13 @@ pub fn build_ui(
     let cheat_codes_content_container = NodeBundle {
         style: Style {
             position_type: PositionType::Absolute,
-            size: Size::new(Val::Px(230.0), Val::Px(400.0)),
+            size: Size::new(Val::Px(230.0), Val::Px(200.0)),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             position: Rect {
                 left: Val::Px(3.),
                 top: Val::Px(100.),
-                bottom: Val::Px(100.),
+                bottom: Val::Px(200.),
                 ..Default::default()
             },
             ..Default::default()

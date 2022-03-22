@@ -1,10 +1,11 @@
 use std::time::Duration;
 
 use crate::enemies::Enemy;
-use crate::{camera::TwoDCameraComponent, effects, physics, platforms, states::GameStates};
+use crate::{effects, physics, platforms, states::GameStates};
 use bevy::math::Vec3Swizzles;
 use bevy::{prelude::*, render::camera::Camera};
 use bevy_kira_audio::{Audio, AudioChannel};
+use bevy_parallax::*;
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 use std::collections::HashMap;
@@ -49,6 +50,42 @@ impl Plugin for PlayerPlugin {
         };
         collected_chars_list.initialize_map();
         app.insert_resource(collected_chars_list)
+            .insert_resource(ParallaxResource {
+                layer_data: vec![
+                    LayerData {
+                        speed: 0.98,
+                        path: "cyberpunk_back.png".to_string(),
+                        tile_size: Vec2::new(96.0, 160.0),
+                        cols: 1,
+                        rows: 1,
+                        scale: 4.5,
+                        z: 0.0,
+                        ..Default::default()
+                    },
+                    LayerData {
+                        speed: 0.92,
+                        path: "cyberpunk_middle.png".to_string(),
+                        tile_size: Vec2::new(144.0, 160.0),
+                        cols: 1,
+                        rows: 1,
+                        scale: 4.5,
+                        z: 1.0,
+                        ..Default::default()
+                    },
+                    LayerData {
+                        speed: 0.82,
+                        path: "cyberpunk_front.png".to_string(),
+                        tile_size: Vec2::new(272.0, 160.0),
+                        cols: 1,
+                        rows: 1,
+                        scale: 4.5,
+                        z: 2.0,
+                        ..Default::default()
+                    },
+                ],
+                ..Default::default()
+            })
+            .add_plugin(ParallaxPlugin)
             .insert_resource(PlayerAnimationResource {
                 run_right: AnimationData {
                     length: 8,
@@ -534,12 +571,17 @@ fn move_character(
 }
 
 fn follow_player_camera(
-    player: Query<&Transform, (With<Player>, Without<Camera>)>,
-    mut camera: Query<&mut Transform, (With<TwoDCameraComponent>, Without<Player>)>,
+    player: Query<&Transform, With<Player>>,
+    camera: Query<&Transform, (With<ParallaxCameraComponent>, Without<Player>)>,
+    mut move_event_writer: EventWriter<ParallaxMoveEvent>,
+    rapier_config: Res<RapierConfiguration>,
 ) {
-    if let Some(player) = player.iter().next() {
-        for mut transform in camera.iter_mut() {
-            transform.translation.x = player.translation.x;
+    if let Some(player_transform) = player.iter().next() {
+        if let Some(camera_transform) = camera.iter().next() {
+            // set speed of parallax to difference in player and camera x positions
+            move_event_writer.send(ParallaxMoveEvent {
+                camera_move_speed: player_transform.translation.x - camera_transform.translation.x,
+            });
         }
     }
 }

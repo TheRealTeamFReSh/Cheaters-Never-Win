@@ -574,7 +574,6 @@ fn follow_player_camera(
     player: Query<&Transform, With<Player>>,
     camera: Query<&Transform, (With<ParallaxCameraComponent>, Without<Player>)>,
     mut move_event_writer: EventWriter<ParallaxMoveEvent>,
-    rapier_config: Res<RapierConfiguration>,
 ) {
     if let Some(player_transform) = player.iter().next() {
         if let Some(camera_transform) = camera.iter().next() {

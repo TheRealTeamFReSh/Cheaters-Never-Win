@@ -12,7 +12,7 @@ opt-level = 1
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version = "0.6.0" }
+bevy = { version = "0.6.1" }
 bevy_rapier2d = {version = "0.12.1", features = ["simd-nightly"]}
 bevy-inspector-egui = "0.8.2"
 bevy_loading = "0.2.0"
@@ -22,6 +22,7 @@ serde = "1.0.127"
 bevy_ninepatch = "0.6.0"
 bevy_tweening = "0.3.2"
 bevy_kira_audio = { version = "0.8.0", features = ["ogg"]}
+bevy-parallax = "0.1.0"
 
 [features]
 default = ["bevy/dynamic"] # to make the wasm github action work with the --no-default-feature flag

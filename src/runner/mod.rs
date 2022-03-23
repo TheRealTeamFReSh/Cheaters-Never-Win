@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-mod backgroundlayer;
 mod lives_counter;
 mod player;
 
@@ -13,8 +12,7 @@ pub struct RunnerPlugin;
 
 impl Plugin for RunnerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugin(backgroundlayer::BackgroundLayerPlugin)
-            .add_plugin(player::PlayerPlugin);
+        app.add_plugin(player::PlayerPlugin);
 
         app.add_system_set(
             SystemSet::on_enter(GameStates::Main)
